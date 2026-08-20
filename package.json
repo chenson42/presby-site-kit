@@ -1,0 +1,30 @@
+{
+  "name": "presby-site-kit",
+  "version": "0.0.1-stub",
+  "description": "presby's shared public-site rendering shell: a versioned renderSiteBundle() entry point that presby imports directly, plus (in a later release) the fixed, allowlisted MDX component library congregation content repos author against. This v0.0.1-stub release exists only to make presby's Phase 4 render-path commit buildable and testable against a real npm-resolvable dependency, per DECISION-086 — it renders each page's front-matter title (if present) plus a placeholder, and does not parse or render mdxAst at all.",
+  "license": "MIT",
+  "private": false,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "react": "^19.0.0",
+    "typescript": "^5.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chenson42/presby-site-kit.git"
+  }
+}
