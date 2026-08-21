@@ -1,36 +1,52 @@
-import type { ReactElement } from "react";
+import { Fragment, type ReactElement } from "react";
+import { ALLOWED_BLOCK_TYPES, BLOCK_REGISTRY, type BlockRenderContext } from "./blocks";
+import { Footer } from "./components/Footer";
+import type { ContentBlock, RenderSiteBundleProfile } from "./types";
+import { isRecord } from "./utils";
 
 /**
- * presby-site-kit — v0.0.1-stub.
+ * presby-site-kit — v1.0.0.
  *
- * This is a STUB release, per DECISION-086 (docs/work-log/2026-08-20-public-
- * sites.md, presby's own repository, Phase 3 "presby-site-kit consumability
- * & Phase 4 sequencing"). It exists so presby's public-site render path
- * (`(public)/site/[slug]/page.tsx`) has a real, npm-resolvable dependency to
- * build and test against, not a locally-shadowed fake. It deliberately does
- * NOT parse `mdxAst`, does NOT implement a component allowlist, and does NOT
- * render real congregation content — it renders each page's front-matter
- * `title` (if present) plus a placeholder. A later, separate release of this
- * package (tagged v1.0.0+) builds the real MDX component library (Hero,
- * ServiceTimes, StaffList, EventList, SermonEmbed, ContactForm, DonateLink,
- * and base MDX prose); presby's consuming code does not change shape when
- * that happens, only the pinned tag in presby's own package.json.
+ * presby's shared public-site rendering shell. presby's public-site render
+ * path (`(public)/site/[slug]/page.tsx`) imports `renderSiteBundle()` and
+ * nothing else from this package — everything else exported here is the
+ * component library that entry point renders against, exposed for direct
+ * testing and documentation, not a second integration surface.
+ *
+ * v1.0.0 replaces the v0.0.1-stub's "ignore mdxAst, render a placeholder"
+ * behavior with the real architecture: each page's `mdxAst` carries a typed
+ * `{ blocks: ContentBlock[] }` array (see ./types.ts), and `renderSiteBundle`
+ * looks each block's `type` up against a **fixed component allowlist**
+ * (./blocks.tsx) — an unrecognized type is skipped, never thrown, never
+ * executed. This is the trust boundary DESIGN-v1-components.md exists to
+ * draw: a content repo is a lower trust tier than presby's own code, so a
+ * content repo can ship data this package's own, trusted component set
+ * chooses how to draw, but never code presby's server executes.
  *
  * NO REAL DATA. This repository's own fixtures, examples, and tests must
  * never contain a real congregation name, person, address, or credential —
  * the same invariant presby's own CLAUDE.md states for itself, restated here
- * explicitly rather than assumed to carry over by proximity (presby's own
- * Phase 1 Gap 9). The per-org content repos this package's consumers
- * (site-<slug>) create are the deliberate, explicit exception — real
- * congregation content lives there, never here.
+ * explicitly rather than assumed to carry over by proximity. The per-org
+ * content repos this package's consumers (site-<slug>) create are the
+ * deliberate, explicit exception — real congregation content lives there,
+ * never here.
  */
 
 export interface SiteKitPage {
   /** e.g. "/", "/about", "/staff" — the bundle's own routing. */
   path: string;
-  /** Opaque to this stub — validated upstream by a content repo's own CI. */
+  /** Opaque to this package — validated upstream by a content repo's own CI
+   * and by presby's own `validateBundle()`, which only checks the field's
+   * presence, never its shape. */
   frontMatter: Record<string, unknown>;
-  /** Opaque to this stub — a v1.0.0+ release parses this; this stub never does. */
+  /**
+   * Wire-format stable as `unknown` at this interface boundary (matches
+   * `validateBundle()`'s own opacity, and keeps this field's shape free to
+   * evolve without a second ingest-side contract change) — narrowed
+   * defensively inside `renderSiteBundle()` to `{ blocks: ContentBlock[] }`.
+   * A malformed or legacy shape renders no body content for that page,
+   * never throws.
+   */
   mdxAst: unknown;
 }
 
@@ -42,7 +58,7 @@ export interface SiteKitTypePairing {
 }
 
 export interface SiteKitBrand {
-  /** Opaque to this stub — the caller's own brand-token shape. Never read
+  /** Opaque to this package — the caller's own brand-token shape. Never read
    * directly here; brand rides entirely through re-declared CSS custom
    * properties the caller already emits (its own <BrandTokens>), not through
    * this package inspecting token values. */
@@ -63,10 +79,36 @@ export interface RenderSiteBundleInput {
    * constructs from its own manifestKey -> blobKey map.
    */
   imageUrl: (manifestKey: string) => string;
+  /**
+   * The organization-level profile fields presby's own schema supplies
+   * (address, phone, social links, service times, office hours). `null`
+   * renders every profile-driven surface (the `serviceTimes` block, the
+   * `Footer` chrome) as absent — the same null-safe-by-construction
+   * discipline as `brand`, not an exception to it. See
+   * DESIGN-v1-components.md's "Org-profile data dependency".
+   */
+  profile: RenderSiteBundleProfile | null;
 }
 
-function firstString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
+function isContentBlockShape(value: unknown): value is { type: string; props: unknown } {
+  return isRecord(value) && typeof value.type === "string";
+}
+
+/** Defensive narrowing of `page.mdxAst` into `ContentBlock[]`. Anything
+ * that isn't the expected `{ blocks: [...] }` shape — including every
+ * legacy v0.0.1-stub `{ raw: string }` page still sitting in an
+ * unmigrated content repo — collapses to an empty array: the page's body
+ * renders as nothing rather than throwing. Individual malformed blocks
+ * (missing `type`) are filtered out here; a present-but-unrecognized
+ * `type` is filtered later, by the allowlist lookup in `renderSiteBundle`. */
+function extractBlocks(mdxAst: unknown): ContentBlock[] {
+  if (!isRecord(mdxAst)) return [];
+  const blocks = mdxAst.blocks;
+  if (!Array.isArray(blocks)) return [];
+  return blocks.filter(isContentBlockShape).map((block) => ({
+    type: block.type,
+    props: isRecord(block.props) ? block.props : {},
+  }));
 }
 
 /**
@@ -76,25 +118,69 @@ function firstString(value: unknown): string | null {
  * notFound()", exactly the same enumeration-safe collapse presby's own
  * `getPublishedSite()` already applies one layer up.
  *
- * Ignores `mdxAst` and every field of `frontMatter` except `title`,
- * deliberately — see this module's own header comment. `imageUrl` is
- * accepted (part of the real, stable signature) but unused by this stub;
- * a v1.0.0+ release calls it from within its own Hero/gallery components.
+ * For a matched page, iterates `mdxAst.blocks`, looks each block's `type`
+ * up against `ALLOWED_BLOCK_TYPES`, and renders the matching component with
+ * its (defensively validated) `props`. An unrecognized `type`, or a block
+ * whose required props are missing/malformed, is skipped — never thrown —
+ * so one bad block never takes down the rest of the page. `Footer` chrome
+ * is composed automatically below every page's blocks, reading `profile`
+ * directly; it is not a block type itself, since every page needs it.
  */
-export function renderSiteBundle(
-  input: RenderSiteBundleInput,
-): ReactElement | null {
+export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | null {
   const page = input.pages.find((p) => p.path === input.currentPath);
   if (!page) return null;
 
-  const title = firstString(page.frontMatter?.title);
+  const ctx: BlockRenderContext = {
+    imageUrl: input.imageUrl,
+    profile: input.profile,
+    headingClassName: input.brand?.fontPairing.headingClassName,
+  };
+
+  const blocks = extractBlocks(page.mdxAst);
+  const rendered = blocks
+    .map((block, index) => {
+      const renderer = BLOCK_REGISTRY[block.type];
+      if (!renderer) return null;
+      const element = renderer(block.props, ctx);
+      if (element === null) return null;
+      return { key: `${block.type}-${index}`, element };
+    })
+    .filter((entry): entry is { key: string; element: ReactElement } => entry !== null);
 
   return (
     <div className={input.brand?.fontPairing.bodyClassName}>
-      {title ? (
-        <h1 className={input.brand?.fontPairing.headingClassName}>{title}</h1>
-      ) : null}
-      <p>Content coming soon.</p>
+      {rendered.map(({ key, element }) => (
+        <Fragment key={key}>{element}</Fragment>
+      ))}
+      <Footer profile={input.profile} headingClassName={ctx.headingClassName} />
     </div>
   );
 }
+
+export { ALLOWED_BLOCK_TYPES } from "./blocks";
+export type { ContentBlock, RenderSiteBundleProfile, ScheduleEntry, SocialLink } from "./types";
+
+export { Callout } from "./components/Callout";
+export type { CalloutProps } from "./components/Callout";
+export { DonateLink } from "./components/DonateLink";
+export type { DonateLinkProps } from "./components/DonateLink";
+export { EventList } from "./components/EventList";
+export type { EventListEvent, EventListProps } from "./components/EventList";
+export { FeatureGrid } from "./components/FeatureGrid";
+export type { FeatureGridItem, FeatureGridProps } from "./components/FeatureGrid";
+export { Footer } from "./components/Footer";
+export type { FooterProps } from "./components/Footer";
+export { Hero } from "./components/Hero";
+export type { HeroProps } from "./components/Hero";
+export { MinistryList } from "./components/MinistryList";
+export type { MinistryListItem, MinistryListProps } from "./components/MinistryList";
+export { Prose } from "./components/Prose";
+export type { ProseProps } from "./components/Prose";
+export { ServiceTimes } from "./components/ServiceTimes";
+export type { ServiceTimesProps } from "./components/ServiceTimes";
+export { SermonEmbed } from "./components/SermonEmbed";
+export type { SermonEmbedProps } from "./components/SermonEmbed";
+export { StaffList } from "./components/StaffList";
+export type { StaffPerson, StaffListProps } from "./components/StaffList";
+export { ValuesGrid } from "./components/ValuesGrid";
+export type { ValuesGridItem, ValuesGridProps } from "./components/ValuesGrid";

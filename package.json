@@ -1,7 +1,7 @@
 {
   "name": "presby-site-kit",
-  "version": "0.0.1-stub",
-  "description": "presby's shared public-site rendering shell: a versioned renderSiteBundle() entry point that presby imports directly, plus (in a later release) the fixed, allowlisted MDX component library congregation content repos author against. This v0.0.1-stub release exists only to make presby's Phase 4 render-path commit buildable and testable against a real npm-resolvable dependency, per DECISION-086 — it renders each page's front-matter title (if present) plus a placeholder, and does not parse or render mdxAst at all.",
+  "version": "1.0.0",
+  "description": "presby's shared public-site rendering shell: renderSiteBundle() turns a normalized content bundle (typed content blocks + an org profile + brand tokens) into JSX, rendered against a fixed, allowlisted component library (Hero, FeatureGrid, Callout, ServiceTimes, StaffList, ValuesGrid, MinistryList, EventList, SermonEmbed, DonateLink, Prose, plus Footer chrome). An unrecognized block type is skipped, never executed — a content repo is a lower trust tier than presby's own code. See DESIGN-v1-components.md.",
   "license": "MIT",
   "private": false,
   "main": "dist/index.js",
@@ -18,10 +18,21 @@
   "peerDependencies": {
     "react": ">=19"
   },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json"
+  },
   "devDependencies": {
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^20.0.0",
     "@types/react": "^19.0.0",
+    "jsdom": "^29.1.1",
     "react": "^19.0.0",
-    "typescript": "^5.7.0"
+    "react-dom": "^19.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.6"
   },
   "repository": {
     "type": "git",
