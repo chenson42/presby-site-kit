@@ -20,4 +20,15 @@ describe("ServiceTimes", () => {
     const { container } = render(<ServiceTimes serviceTimes={[]} />);
     expect(container.innerHTML).toBe("");
   });
+
+  it("REGRESSION: formats Postgres's HH:MM:SS shape, not just HH:MM", () => {
+    render(
+      <ServiceTimes
+        serviceTimes={[
+          { dayOfWeek: 0, startTime: "10:15:00", endTime: "11:15:00", label: "Sunday Worship" },
+        ]}
+      />,
+    );
+    expect(screen.getByText(/Sunday Worship — Sunday 10:15 AM–11:15 AM/)).toBeTruthy();
+  });
 });

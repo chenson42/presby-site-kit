@@ -74,16 +74,25 @@ export function dayName(dayOfWeek: number): string {
 }
 
 /**
- * Formats a plain "HH:MM" 24-hour wall-clock string, e.g. "10:15" ->
- * "10:15 AM". Deliberately NOT a `Date`/`toLocale*` path: a schedule entry
- * is a clock time with no associated calendar date or timezone, so routing
- * it through `Date` would invent both and risk exactly the drift class
- * presby's own CLAUDE.md documents for calendar dates ("never call
- * toLocale*() directly"). A malformed value renders as-is rather than
- * throwing.
+ * Formats a 24-hour wall-clock string, "HH:MM" or "HH:MM:SS", e.g. "10:15"
+ * or "10:15:00" -> "10:15 AM". Deliberately NOT a `Date`/`toLocale*` path: a
+ * schedule entry is a clock time with no associated calendar date or
+ * timezone, so routing it through `Date` would invent both and risk exactly
+ * the drift class presby's own CLAUDE.md documents for calendar dates
+ * ("never call toLocale*() directly"). A malformed value renders as-is
+ * rather than throwing.
+ *
+ * The `:SS` suffix is accepted (and discarded) because it's the real shape
+ * Postgres's own `time` column type serializes as — presby's
+ * `presby_published_site()` returns `organization_service_times.start_time`
+ * exactly this way, confirmed live against the real function during this
+ * package's own end-to-end verification, not assumed from either side's
+ * unit tests alone. Seconds precision has no display purpose for a
+ * congregation's schedule; this is a real input shape to accept, not a
+ * lossy simplification.
  */
 export function formatClockTime(value: string): string {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(value.trim());
+  const match = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(value.trim());
   if (!match) return value;
   const rawHour = Number(match[1]);
   const minute = match[2];
