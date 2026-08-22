@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderSiteBundle, type RenderSiteBundleInput, type SiteKitPage } from "../src/index";
-import { emptyProfile, fullProfile, testImageUrl } from "./fixtures";
+import { emptyProfile, fullProfile, testImageUrl, testPageUrl } from "./fixtures";
 
 function baseInput(overrides: Partial<RenderSiteBundleInput> = {}): RenderSiteBundleInput {
   return {
@@ -9,6 +9,7 @@ function baseInput(overrides: Partial<RenderSiteBundleInput> = {}): RenderSiteBu
     currentPath: "/",
     brand: null,
     imageUrl: testImageUrl,
+    pageUrl: testPageUrl,
     profile: null,
     ...overrides,
   };
@@ -135,6 +136,43 @@ describe("renderSiteBundle — malformed/hostile input never throws", () => {
     render(<>{renderSiteBundle(baseInput({ pages: [page], currentPath: "/" }))}</>);
     expect(screen.queryByRole("heading", { level: 1 })).toBeNull();
     expect(screen.getByText("Survives.")).toBeTruthy();
+  });
+});
+
+describe("renderSiteBundle — Nav composition", () => {
+  const aboutPage: SiteKitPage = {
+    path: "/about",
+    frontMatter: { title: "About", navLabel: "About" },
+    mdxAst: { blocks: [{ type: "prose", props: { body: "About us." } }] },
+  };
+  const homeWithNav: SiteKitPage = {
+    ...homePage,
+    frontMatter: { ...homePage.frontMatter, navLabel: "Home" },
+  };
+
+  it("renders Nav above the page blocks when two or more pages opt in via navLabel", () => {
+    render(
+      <>
+        {renderSiteBundle(
+          baseInput({ pages: [homeWithNav, aboutPage], currentPath: "/" }),
+        )}
+      </>,
+    );
+    expect(screen.getByRole("navigation", { name: "Site" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "About" })).toBeTruthy();
+  });
+
+  it("omits Nav entirely for a single-page bundle", () => {
+    render(<>{renderSiteBundle(baseInput({ pages: [homeWithNav], currentPath: "/" }))}</>);
+    expect(screen.queryByRole("navigation", { name: "Site" })).toBeNull();
+  });
+
+  it("a page not in the bundle still 404s (returns null) even though Nav would otherwise render", () => {
+    expect(
+      renderSiteBundle(
+        baseInput({ pages: [homeWithNav, aboutPage], currentPath: "/nowhere" }),
+      ),
+    ).toBeNull();
   });
 });
 

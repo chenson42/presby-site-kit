@@ -1,5 +1,6 @@
 import { type ReactElement } from "react";
-import type { RenderSiteBundleProfile } from "./types";
+import type { RenderSiteBundleProfile, SiteKitPage } from "./types";
+export type { SiteKitPage } from "./types";
 /**
  * presby-site-kit — v1.0.0.
  *
@@ -27,23 +28,6 @@ import type { RenderSiteBundleProfile } from "./types";
  * deliberate, explicit exception — real congregation content lives there,
  * never here.
  */
-export interface SiteKitPage {
-    /** e.g. "/", "/about", "/staff" — the bundle's own routing. */
-    path: string;
-    /** Opaque to this package — validated upstream by a content repo's own CI
-     * and by presby's own `validateBundle()`, which only checks the field's
-     * presence, never its shape. */
-    frontMatter: Record<string, unknown>;
-    /**
-     * Wire-format stable as `unknown` at this interface boundary (matches
-     * `validateBundle()`'s own opacity, and keeps this field's shape free to
-     * evolve without a second ingest-side contract change) — narrowed
-     * defensively inside `renderSiteBundle()` to `{ blocks: ContentBlock[] }`.
-     * A malformed or legacy shape renders no body content for that page,
-     * never throws.
-     */
-    mdxAst: unknown;
-}
 export interface SiteKitTypePairing {
     /** Applied to the element (or an ancestor) that sets the body face. */
     bodyClassName: string;
@@ -71,6 +55,12 @@ export interface RenderSiteBundleInput {
      * constructs from its own manifestKey -> blobKey map.
      */
     imageUrl: (manifestKey: string) => string;
+    /**
+     * presby's own URL builder for a bundle-relative page path (e.g. "/",
+     * "/about") — the same reasoning as `imageUrl`: this package never
+     * assumes a `/site/<slug>` prefix or any other URL scheme. Used by `Nav`.
+     */
+    pageUrl: (path: string) => string;
     /**
      * The organization-level profile fields presby's own schema supplies
      * (address, phone, social links, service times, office hours). `null`
@@ -113,6 +103,8 @@ export { Hero } from "./components/Hero";
 export type { HeroProps } from "./components/Hero";
 export { MinistryList } from "./components/MinistryList";
 export type { MinistryListItem, MinistryListProps } from "./components/MinistryList";
+export { Nav } from "./components/Nav";
+export type { NavProps } from "./components/Nav";
 export { Prose } from "./components/Prose";
 export type { ProseProps } from "./components/Prose";
 export { ServiceTimes } from "./components/ServiceTimes";

@@ -7,6 +7,9 @@ import type { RenderSiteBundleProfile } from "../src/types";
 export const testImageUrl = (manifestKey: string): string =>
   `https://cdn.example.invalid/${manifestKey}.jpg`;
 
+export const testPageUrl = (path: string): string =>
+  `https://fixture.example.invalid/site/fixture-hollow${path === "/" ? "" : path}`;
+
 export const emptyProfile: RenderSiteBundleProfile = {
   address: null,
   phone: null,

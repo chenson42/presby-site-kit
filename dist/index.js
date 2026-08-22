@@ -1,11 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ValuesGrid = exports.StaffList = exports.SermonEmbed = exports.ServiceTimes = exports.Prose = exports.MinistryList = exports.Hero = exports.Footer = exports.FeatureGrid = exports.EventList = exports.DonateLink = exports.Callout = exports.ALLOWED_BLOCK_TYPES = void 0;
+exports.ValuesGrid = exports.StaffList = exports.SermonEmbed = exports.ServiceTimes = exports.Prose = exports.Nav = exports.MinistryList = exports.Hero = exports.Footer = exports.FeatureGrid = exports.EventList = exports.DonateLink = exports.Callout = exports.ALLOWED_BLOCK_TYPES = void 0;
 exports.renderSiteBundle = renderSiteBundle;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const blocks_1 = require("./blocks");
 const Footer_1 = require("./components/Footer");
+const Nav_1 = require("./components/Nav");
 const utils_1 = require("./utils");
 function isContentBlockShape(value) {
     return (0, utils_1.isRecord)(value) && typeof value.type === "string";
@@ -64,7 +65,7 @@ function renderSiteBundle(input) {
         return { key: `${block.type}-${index}`, element };
     })
         .filter((entry) => entry !== null);
-    return ((0, jsx_runtime_1.jsxs)("div", { className: input.brand?.fontPairing.bodyClassName, children: [rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName })] }));
+    return ((0, jsx_runtime_1.jsxs)("div", { className: input.brand?.fontPairing.bodyClassName, children: [(0, jsx_runtime_1.jsx)(Nav_1.Nav, { pages: input.pages, currentPath: input.currentPath, pageUrl: input.pageUrl }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName })] }));
 }
 var blocks_2 = require("./blocks");
 Object.defineProperty(exports, "ALLOWED_BLOCK_TYPES", { enumerable: true, get: function () { return blocks_2.ALLOWED_BLOCK_TYPES; } });
@@ -82,6 +83,8 @@ var Hero_1 = require("./components/Hero");
 Object.defineProperty(exports, "Hero", { enumerable: true, get: function () { return Hero_1.Hero; } });
 var MinistryList_1 = require("./components/MinistryList");
 Object.defineProperty(exports, "MinistryList", { enumerable: true, get: function () { return MinistryList_1.MinistryList; } });
+var Nav_2 = require("./components/Nav");
+Object.defineProperty(exports, "Nav", { enumerable: true, get: function () { return Nav_2.Nav; } });
 var Prose_1 = require("./components/Prose");
 Object.defineProperty(exports, "Prose", { enumerable: true, get: function () { return Prose_1.Prose; } });
 var ServiceTimes_1 = require("./components/ServiceTimes");

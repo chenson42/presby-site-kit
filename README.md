@@ -7,19 +7,29 @@ one entry point, `renderSiteBundle()`, to turn a normalized content bundle
 repo's own CI) into JSX — rendered inside presby's own server process, not a
 per-org deployment.
 
-## Status: v1.0.0
+## Status: v2.0.0
 
 `renderSiteBundle()` renders a page's typed content blocks (`mdxAst.blocks`)
 against a **fixed component allowlist** — `Hero`, `FeatureGrid`, `Callout`,
 `ServiceTimes`, `StaffList`, `ValuesGrid`, `MinistryList`, `EventList`,
 `SermonEmbed`, `DonateLink`, and `Prose` (constrained Markdown — headings,
-paragraphs, lists, links, emphasis; no raw HTML) — plus `Footer` chrome
-(address/phone/hours/social/directions), composed automatically below every
-page's blocks from the organization's profile data. An unrecognized block
-`type`, or a block whose `props` fail validation, is skipped — never thrown,
-never rendered as markup — see `DESIGN-v1-components.md` for the full
-architecture rationale (typed blocks instead of MDX-with-embedded-JS, and
-why that's the trust boundary that matters for a content repo).
+paragraphs, lists, links, emphasis; no raw HTML) — plus two pieces of chrome
+composed automatically, not block types themselves: `Footer`
+(address/phone/hours/social/directions, from the organization's profile
+data) below every page's blocks, and `Nav` above them, listing every page
+whose `frontMatter.navLabel` is set (a page with none is left out; the whole
+`Nav` renders nothing with fewer than two navigable pages — there's nothing
+to navigate between). An unrecognized block `type`, or a block whose `props`
+fail validation, is skipped — never thrown, never rendered as markup — see
+`DESIGN-v1-components.md` for the full architecture rationale (typed blocks
+instead of MDX-with-embedded-JS, and why that's the trust boundary that
+matters for a content repo).
+
+**v2.0.0 is a breaking change from v1.x**: `RenderSiteBundleInput` gains a
+required `pageUrl: (path: string) => string` field, the same
+never-assume-a-URL-prefix reasoning `imageUrl` already established — `Nav`
+needs it to build real links, and this package still never hardcodes a
+`/site/<slug>` prefix itself.
 
 `ContactForm` is intentionally **not** part of this package — it already
 exists in presby's own repo and renders separately, below this package's

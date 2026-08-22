@@ -5,6 +5,29 @@
  * data" invariant that applies to every fixture in this repo.
  */
 
+/**
+ * One page in a site's content bundle. `path` is the bundle's own routing
+ * (e.g. "/", "/about") — presby's own render path translates this into a
+ * real URL via the `pageUrl` closure it hands `renderSiteBundle()`; this
+ * package never assumes a URL prefix.
+ */
+export interface SiteKitPage {
+  path: string;
+  /** Opaque to this package — validated upstream by a content repo's own CI
+   * and by presby's own `validateBundle()`, which only checks the field's
+   * presence, never its shape. A page opts into `Nav` chrome by setting
+   * `frontMatter.navLabel` to a non-empty string; unset (or every other
+   * key) is ignored. */
+  frontMatter: Record<string, unknown>;
+  /**
+   * Wire-format stable as `unknown` at this interface boundary — narrowed
+   * defensively inside `renderSiteBundle()` to `{ blocks: ContentBlock[] }`.
+   * A malformed or legacy shape renders no body content for that page,
+   * never throws.
+   */
+  mdxAst: unknown;
+}
+
 export interface SocialLink {
   platform: "facebook" | "instagram" | "xTwitter" | "youtube" | "other";
   url: string;
