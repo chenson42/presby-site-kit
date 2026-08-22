@@ -91,6 +91,21 @@ describe("build-bundle.mjs — buildBundle()", () => {
     expect(image.bytesBase64.length).toBeGreaterThan(0);
   });
 
+  it("REGRESSION: the root page (\"/\") always sorts first in bundle.pages, regardless of filename", () => {
+    // site-kit's Nav renders pages in bundle order — "about.json" sorts
+    // alphabetically before "index.json", which without this ordering
+    // would put "Home" somewhere in the middle of the nav instead of first.
+    const repo = makeFixtureRepo();
+    const result = buildBundle(repo);
+    expect(result.bundle.pages[0]?.path).toBe("/");
+    // Every other page keeps its natural alphabetical order after that.
+    expect(result.bundle.pages.map((p) => p.path)).toEqual([
+      "/",
+      "/about",
+      "/staff/leadership",
+    ]);
+  });
+
   it("ignores non-image files under images/", () => {
     const repo = makeFixtureRepo();
     const result = buildBundle(repo);

@@ -82,6 +82,16 @@ export function buildPages(contentRoot) {
       frontMatter,
       mdxAst: { blocks },
     };
+  }).sort((a, b) => {
+    // The root page ("/") always sorts first, regardless of filename --
+    // site-kit's Nav renders pages in bundle order, and a home page
+    // filed under "index.json" would otherwise sort alphabetically after
+    // "about.json" and every other page whose filename starts earlier in
+    // the alphabet, putting "Home" somewhere in the middle of the nav.
+    // Every other page keeps its natural path order.
+    if (a.path === "/") return -1;
+    if (b.path === "/") return 1;
+    return a.path.localeCompare(b.path);
   });
 }
 
