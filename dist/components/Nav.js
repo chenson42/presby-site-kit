@@ -17,14 +17,22 @@ function navEntriesFor(pages) {
 /**
  * Top navigation chrome, composed automatically by `renderSiteBundle()`
  * above every page's blocks — not a content block itself, since it needs
- * the whole bundle's page list, not one page's own props. Renders nothing
- * at all with fewer than two navigable pages: a single-page site has
- * nothing meaningful to navigate between, the same "omit the section
- * entirely, never a blank placeholder" discipline `Footer` already follows.
+ * the whole bundle's page list, not one page's own props.
+ *
+ * Two independently-gated pieces: the page links (nothing at all with fewer
+ * than two navigable pages — a single-page site has nothing meaningful to
+ * navigate between, the same "omit the section entirely, never a blank
+ * placeholder" discipline `Footer` already follows) and the member-portal
+ * login link (shown whenever `portalUrl` is set, regardless of how many
+ * public pages exist — a one-page site still has members who need to sign
+ * in). The whole element renders `null` only when both are absent.
  */
-function Nav({ pages, currentPath, pageUrl }) {
+function Nav({ pages, currentPath, pageUrl, portalUrl }) {
     const entries = navEntriesFor(pages);
-    if (entries.length < 2)
+    const showPageLinks = entries.length >= 2;
+    if (!showPageLinks && !portalUrl)
         return null;
-    return ((0, jsx_runtime_1.jsx)("nav", { "aria-label": "Site", "data-block": "nav", children: (0, jsx_runtime_1.jsx)("ul", { children: entries.map((entry) => ((0, jsx_runtime_1.jsx)("li", { children: (0, jsx_runtime_1.jsx)("a", { href: pageUrl(entry.path), "aria-current": entry.path === currentPath ? "page" : undefined, children: entry.label }) }, entry.path))) }) }));
+    return ((0, jsx_runtime_1.jsx)("nav", { "aria-label": "Site", "data-block": "nav", children: (0, jsx_runtime_1.jsxs)("ul", { children: [showPageLinks
+                    ? entries.map((entry) => ((0, jsx_runtime_1.jsx)("li", { children: (0, jsx_runtime_1.jsx)("a", { href: pageUrl(entry.path), "aria-current": entry.path === currentPath ? "page" : undefined, children: entry.label }) }, entry.path)))
+                    : null, portalUrl ? ((0, jsx_runtime_1.jsx)("li", { "data-slot": "portal-login", children: (0, jsx_runtime_1.jsx)("a", { href: portalUrl, children: "Member Login" }) })) : null] }) }));
 }

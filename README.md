@@ -7,7 +7,7 @@ one entry point, `renderSiteBundle()`, to turn a normalized content bundle
 repo's own CI) into JSX — rendered inside presby's own server process, not a
 per-org deployment.
 
-## Status: v2.0.0
+## Status: v3.0.0
 
 `renderSiteBundle()` renders a page's typed content blocks (`mdxAst.blocks`)
 against a **fixed component allowlist** — `Hero`, `FeatureGrid`, `Callout`,
@@ -16,16 +16,27 @@ against a **fixed component allowlist** — `Hero`, `FeatureGrid`, `Callout`,
 paragraphs, lists, links, emphasis; no raw HTML) — plus two pieces of chrome
 composed automatically, not block types themselves: `Footer`
 (address/phone/hours/social/directions, from the organization's profile
-data) below every page's blocks, and `Nav` above them, listing every page
-whose `frontMatter.navLabel` is set (a page with none is left out; the whole
-`Nav` renders nothing with fewer than two navigable pages — there's nothing
-to navigate between). An unrecognized block `type`, or a block whose `props`
-fail validation, is skipped — never thrown, never rendered as markup — see
+data) below every page's blocks, and `Nav` above them. `Nav` has two
+independently-gated pieces: page links, listing every page whose
+`frontMatter.navLabel` is set (nothing at all with fewer than two navigable
+pages — there's nothing to navigate between), and a "Member Login" link to
+presby's own member portal whenever `portalUrl` is set, shown regardless of
+how many public pages exist — a one-page site still has members who need to
+sign in. An unrecognized block `type`, or a block whose `props` fail
+validation, is skipped — never thrown, never rendered as markup — see
 `DESIGN-v1-components.md` for the full architecture rationale (typed blocks
 instead of MDX-with-embedded-JS, and why that's the trust boundary that
 matters for a content repo).
 
-**v2.0.0 is a breaking change from v1.x**: `RenderSiteBundleInput` gains a
+**v3.0.0 is a breaking change from v2.x**: `RenderSiteBundleInput` gains a
+required `portalUrl: string | null` field. Unlike `pageUrl`, this isn't a
+closure — the member portal (presby's `/o/<slug>`) is a fixed URL per site,
+not one that varies per bundle-relative path, so a plain string (or `null`
+to omit the login link entirely) is enough. This package never decides who's
+signed in; that's presby's own Edge gate's job when a visitor follows the
+link.
+
+**v2.0.0 was a breaking change from v1.x**: `RenderSiteBundleInput` gained a
 required `pageUrl: (path: string) => string` field, the same
 never-assume-a-URL-prefix reasoning `imageUrl` already established — `Nav`
 needs it to build real links, and this package still never hardcodes a

@@ -71,6 +71,14 @@ export interface RenderSiteBundleInput {
    */
   pageUrl: (path: string) => string;
   /**
+   * The member portal's sign-in entry point (presby's `/o/<slug>`) — a
+   * genuinely different URL scheme than `pageUrl` builds, so this is a
+   * plain string, not derived from it. `null` renders `Nav`'s "Member
+   * Login" link as absent, the same null-safe-by-construction discipline
+   * as `brand`/`profile`.
+   */
+  portalUrl: string | null;
+  /**
    * The organization-level profile fields presby's own schema supplies
    * (address, phone, social links, service times, office hours). `null`
    * renders every profile-driven surface (the `serviceTimes` block, the
@@ -140,7 +148,12 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
 
   return (
     <div className={input.brand?.fontPairing.bodyClassName}>
-      <Nav pages={input.pages} currentPath={input.currentPath} pageUrl={input.pageUrl} />
+      <Nav
+        pages={input.pages}
+        currentPath={input.currentPath}
+        pageUrl={input.pageUrl}
+        portalUrl={input.portalUrl}
+      />
       {rendered.map(({ key, element }) => (
         <Fragment key={key}>{element}</Fragment>
       ))}

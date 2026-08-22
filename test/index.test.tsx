@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { renderSiteBundle, type RenderSiteBundleInput, type SiteKitPage } from "../src/index";
-import { emptyProfile, fullProfile, testImageUrl, testPageUrl } from "./fixtures";
+import { emptyProfile, fullProfile, testImageUrl, testPageUrl, testPortalUrl } from "./fixtures";
 
 function baseInput(overrides: Partial<RenderSiteBundleInput> = {}): RenderSiteBundleInput {
   return {
@@ -10,6 +10,7 @@ function baseInput(overrides: Partial<RenderSiteBundleInput> = {}): RenderSiteBu
     brand: null,
     imageUrl: testImageUrl,
     pageUrl: testPageUrl,
+    portalUrl: null,
     profile: null,
     ...overrides,
   };
@@ -173,6 +174,26 @@ describe("renderSiteBundle — Nav composition", () => {
         baseInput({ pages: [homeWithNav, aboutPage], currentPath: "/nowhere" }),
       ),
     ).toBeNull();
+  });
+
+  it("renders the Member Login link even on a single-page bundle when portalUrl is set", () => {
+    render(
+      <>
+        {renderSiteBundle(
+          baseInput({ pages: [homePage], currentPath: "/", portalUrl: testPortalUrl }),
+        )}
+      </>,
+    );
+    expect(screen.getByRole("navigation", { name: "Site" })).toBeTruthy();
+    const link = screen.getByRole("link", { name: "Member Login" });
+    expect(link.getAttribute("href")).toBe(testPortalUrl);
+  });
+
+  it("omits Nav entirely for a single-page bundle with no portalUrl either", () => {
+    render(
+      <>{renderSiteBundle(baseInput({ pages: [homePage], currentPath: "/", portalUrl: null }))}</>,
+    );
+    expect(screen.queryByRole("navigation", { name: "Site" })).toBeNull();
   });
 });
 

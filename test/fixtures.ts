@@ -10,6 +10,8 @@ export const testImageUrl = (manifestKey: string): string =>
 export const testPageUrl = (path: string): string =>
   `https://fixture.example.invalid/site/fixture-hollow${path === "/" ? "" : path}`;
 
+export const testPortalUrl = "https://fixture.example.invalid/o/fixture-hollow";
+
 export const emptyProfile: RenderSiteBundleProfile = {
   address: null,
   phone: null,
