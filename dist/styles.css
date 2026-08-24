@@ -287,9 +287,9 @@
   min-height: 14rem;
 }
 
-.presby-site [data-block="callout"] > :not(img) {
-  padding: 2.5rem 1.5rem;
+.presby-site [data-block="callout"] [data-slot="content"] {
   align-self: center;
+  padding: 2.5rem 1.5rem;
 }
 
 .presby-site [data-block="callout"] h2 {

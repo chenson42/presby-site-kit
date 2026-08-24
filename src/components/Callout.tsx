@@ -20,9 +20,11 @@ export function Callout({
   return (
     <section data-block="callout">
       {imageUrl ? <img src={imageUrl} alt={imageAlt ?? ""} /> : null}
-      <h2 className={headingClassName}>{heading}</h2>
-      <p>{body}</p>
-      <a href={cta.href}>{cta.label}</a>
+      <div data-slot="content">
+        <h2 className={headingClassName}>{heading}</h2>
+        <p>{body}</p>
+        <a href={cta.href}>{cta.label}</a>
+      </div>
     </section>
   );
 }
