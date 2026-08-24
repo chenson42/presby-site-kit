@@ -50,6 +50,7 @@ function renderSiteBundle(input) {
         return null;
     const ctx = {
         imageUrl: input.imageUrl,
+        pageUrl: input.pageUrl,
         profile: input.profile,
         headingClassName: input.brand?.fontPairing.headingClassName,
     };

@@ -7,7 +7,40 @@ one entry point, `renderSiteBundle()`, to turn a normalized content bundle
 repo's own CI) into JSX — rendered inside presby's own server process, not a
 per-org deployment.
 
-## Status: v3.1.0
+## Status: v3.2.0
+
+**v3.2.0 fixes two real defects, both found by clicking through a real
+fixture site rather than trusting the unit suite alone.**
+
+**Internal links resolved to presby's own site root, not this bundle.**
+Every content-authored href that isn't `Nav`'s own page list — a
+`FeatureGrid` card, a `Hero`/`Callout` CTA, an `EventList` entry, a
+`DonateLink` — was rendered as the raw bundle-relative path the content
+repo authored (`/worship`), never passed through the `pageUrl` closure that
+`Nav` already used to prefix it (`/site/<slug>/worship`). A visitor clicking
+the "Worship" card on the home page landed on presby's own 404 at `/worship`,
+while the identical "Worship" link in the nav bar worked, because only `Nav`
+had ever been wired to `pageUrl`. `BlockRenderContext` now carries `pageUrl`
+too, and every block renderer resolves a `/`-prefixed href through it before
+handing it to a component — a `#anchor` or an absolute `http(s)`/`mailto`/
+`tel` URL passes through unchanged, exactly as `sanitizeHref` already
+classified it. Not a breaking change to this package's own exported types —
+`RenderSiteBundleInput` already required `pageUrl`; this release just makes
+every block actually use it.
+
+**The stylesheet had zero responsive breakpoints.** `styles.css` (see
+v3.1.0 below) rendered correctly wide but had no `@media` query anywhere —
+`Nav` wrapped awkwardly and `Callout`'s two-column layout stayed cramped
+rather than stacking under ~640px. A `max-width: 640px` block now covers
+`Nav` (the "Member Login" button becomes a full-width row instead of an
+orphaned pinned-right fragment, and link tap targets grow) and `Callout`
+(collapses back to one column, image above text).
+
+**v3.1.1 fixed `Callout`'s own layout**: CSS Grid auto-placement was
+wrapping the body paragraph into a second row under the image instead of
+beside the heading, because the heading/body/CTA were three flat grid
+siblings, not one group. `Callout` now wraps them in a single
+`data-slot="content"` element.
 
 **v3.1.0 adds a real stylesheet** — `presby-site-kit/styles.css`. Every
 component before this release rendered semantic HTML with no visual styling

@@ -427,3 +427,57 @@
   display: flex;
   gap: 1rem;
 }
+
+/* ---------------------------------------------------------------------
+ * Responsive -- narrow viewports. Everything above this point assumes
+ * enough width for the nav to fit on one line and for Callout's
+ * image/text pair to sit side by side; neither holds under ~640px.
+ * ------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .presby-site [data-block="nav"] ul {
+    padding: 0.75rem 1rem;
+  }
+
+  .presby-site [data-block="nav"] a {
+    padding: 0.6rem 0;
+  }
+
+  .presby-site [data-block="nav"] li[data-slot="portal-login"] {
+    margin-left: 0;
+    width: 100%;
+    order: 99;
+  }
+
+  .presby-site [data-block="nav"] li[data-slot="portal-login"] a {
+    display: block;
+    text-align: center;
+    padding: 0.6rem 1rem;
+  }
+
+  .presby-site > [data-block] {
+    padding: 0 1rem;
+  }
+
+  .presby-site [data-block="hero"] {
+    padding: 3rem 1.25rem;
+  }
+
+  .presby-site [data-block="callout"]:has(img) {
+    grid-template-columns: 1fr;
+  }
+
+  .presby-site [data-block="callout"] img {
+    min-height: 12rem;
+  }
+
+  .presby-site [data-block="callout"] [data-slot="content"] {
+    padding: 2rem 1.25rem;
+  }
+
+  .presby-site [data-block="footer"] {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 2rem 1.25rem;
+  }
+}

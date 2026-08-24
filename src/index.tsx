@@ -131,6 +131,7 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
 
   const ctx: BlockRenderContext = {
     imageUrl: input.imageUrl,
+    pageUrl: input.pageUrl,
     profile: input.profile,
     headingClassName: input.brand?.fontPairing.headingClassName,
   };

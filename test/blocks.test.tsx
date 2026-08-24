@@ -1,9 +1,13 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { ALLOWED_BLOCK_TYPES, BLOCK_REGISTRY, type BlockRenderContext } from "../src/blocks";
-import { emptyProfile, fullProfile, testImageUrl } from "./fixtures";
+import { emptyProfile, fullProfile, testImageUrl, testPageUrl } from "./fixtures";
 
-const baseCtx: BlockRenderContext = { imageUrl: testImageUrl, profile: null };
+const baseCtx: BlockRenderContext = {
+  imageUrl: testImageUrl,
+  pageUrl: testPageUrl,
+  profile: null,
+};
 
 describe("ALLOWED_BLOCK_TYPES / BLOCK_REGISTRY", () => {
   it("lists exactly the design note's eleven block types", () => {
@@ -69,10 +73,54 @@ describe("individual block renderers — malformed props render nothing, not a t
     ).toBeNull();
   });
 
+  it("featureGrid: a bundle-relative href resolves through ctx.pageUrl, not the raw path — a raw `/worship` would 404 against presby's own site root instead of this bundle's `/site/<slug>/worship`", () => {
+    const element = BLOCK_REGISTRY.featureGrid(
+      { items: [{ heading: "Worship", body: "Sundays", href: "/worship" }] },
+      baseCtx,
+    );
+    const { container } = render(<>{element}</>);
+    expect(container.querySelector("a")?.getAttribute("href")).toBe(testPageUrl("/worship"));
+  });
+
+  it("featureGrid: an external href passes through unresolved", () => {
+    const element = BLOCK_REGISTRY.featureGrid(
+      { items: [{ heading: "Give", body: "External", href: "https://give.example.invalid" }] },
+      baseCtx,
+    );
+    const { container } = render(<>{element}</>);
+    expect(container.querySelector("a")?.getAttribute("href")).toBe(
+      "https://give.example.invalid",
+    );
+  });
+
   it("callout: cta is required — missing cta renders null", () => {
     expect(
       BLOCK_REGISTRY.callout({ heading: "Need help?", body: "We can help." }, baseCtx),
     ).toBeNull();
+  });
+
+  it("callout: cta href resolves through ctx.pageUrl", () => {
+    const element = BLOCK_REGISTRY.callout(
+      {
+        heading: "Need help?",
+        body: "We can help.",
+        cta: { label: "See ministries", href: "/ministries" },
+      },
+      baseCtx,
+    );
+    const { container } = render(<>{element}</>);
+    expect(container.querySelector("a")?.getAttribute("href")).toBe(
+      testPageUrl("/ministries"),
+    );
+  });
+
+  it("hero: cta href resolves through ctx.pageUrl", () => {
+    const element = BLOCK_REGISTRY.hero(
+      { heading: "Welcome", cta: { label: "Plan a visit", href: "/about" } },
+      baseCtx,
+    );
+    const { container } = render(<>{element}</>);
+    expect(container.querySelector("a")?.getAttribute("href")).toBe(testPageUrl("/about"));
   });
 
   it("serviceTimes: ignores its own props and reads ctx.profile", () => {

@@ -9,6 +9,13 @@ import type { RenderSiteBundleProfile } from "./types";
  */
 export interface BlockRenderContext {
     imageUrl: (manifestKey: string) => string;
+    /** presby's own bundle-relative page-path URL builder — the same one
+     * `Nav` already receives directly (see ../index.tsx). Content-authored
+     * hrefs (FeatureGrid items, Hero/Callout CTAs, EventList entries) are
+     * bundle-relative paths like `/worship`, not `/site/<slug>/worship` —
+     * a block renderer that emits one of those raw, un-resolved, sends the
+     * visitor to presby's own root instead of back into this site. */
+    pageUrl: (path: string) => string;
     profile: RenderSiteBundleProfile | null;
     headingClassName?: string;
 }

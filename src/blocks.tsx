@@ -23,6 +23,13 @@ import { asArray, asCta, asNonEmptyString, asString, isRecord, sanitizeHref } fr
 
 export interface BlockRenderContext {
   imageUrl: (manifestKey: string) => string;
+  /** presby's own bundle-relative page-path URL builder — the same one
+   * `Nav` already receives directly (see ../index.tsx). Content-authored
+   * hrefs (FeatureGrid items, Hero/Callout CTAs, EventList entries) are
+   * bundle-relative paths like `/worship`, not `/site/<slug>/worship` —
+   * a block renderer that emits one of those raw, un-resolved, sends the
+   * visitor to presby's own root instead of back into this site. */
+  pageUrl: (path: string) => string;
   profile: RenderSiteBundleProfile | null;
   headingClassName?: string;
 }
@@ -31,6 +38,15 @@ type BlockRenderer = (
   props: Record<string, unknown>,
   ctx: BlockRenderContext,
 ) => ReactElement | null;
+
+/** `sanitizeHref` already narrows a content-authored href to one of three
+ * shapes: bundle-relative (`/...`), same-page anchor (`#...`), or an
+ * absolute http(s)/mailto/tel URL. Only the first shape is this bundle's
+ * own — that's the one `pageUrl` needs to prefix; a hash or an external URL
+ * passes through unchanged. */
+function resolveHref(href: string, ctx: BlockRenderContext): string {
+  return href.startsWith("/") ? ctx.pageUrl(href) : href;
+}
 
 function renderHeroBlock(
   props: Record<string, unknown>,
@@ -46,20 +62,27 @@ function renderHeroBlock(
     body: asNonEmptyString(props.body) ?? undefined,
     imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined,
     imageAlt: asNonEmptyString(props.imageAlt) ?? undefined,
-    cta: asCta(props.cta) ?? undefined,
+    cta: resolveCta(asCta(props.cta), ctx) ?? undefined,
     headingClassName: ctx.headingClassName,
   };
   return <Hero {...heroProps} />;
 }
 
-function asFeatureGridItems(value: unknown): FeatureGridItem[] {
+function resolveCta(
+  cta: { label: string; href: string } | null,
+  ctx: BlockRenderContext,
+): { label: string; href: string } | null {
+  return cta ? { ...cta, href: resolveHref(cta.href, ctx) } : null;
+}
+
+function asFeatureGridItems(value: unknown, ctx: BlockRenderContext): FeatureGridItem[] {
   return asArray(value).flatMap((raw) => {
     if (!isRecord(raw)) return [];
     const heading = asNonEmptyString(raw.heading);
     const body = asNonEmptyString(raw.body);
     const href = sanitizeHref(raw.href);
     if (heading === null || body === null || href === null) return [];
-    return [{ heading, body, href }];
+    return [{ heading, body, href: resolveHref(href, ctx) }];
   });
 }
 
@@ -67,7 +90,7 @@ function renderFeatureGridBlock(
   props: Record<string, unknown>,
   ctx: BlockRenderContext,
 ): ReactElement | null {
-  const items = asFeatureGridItems(props.items);
+  const items = asFeatureGridItems(props.items, ctx);
   if (items.length === 0) return null;
   return <FeatureGrid items={items} headingClassName={ctx.headingClassName} />;
 }
@@ -78,7 +101,7 @@ function renderCalloutBlock(
 ): ReactElement | null {
   const heading = asNonEmptyString(props.heading);
   const body = asNonEmptyString(props.body);
-  const cta = asCta(props.cta);
+  const cta = resolveCta(asCta(props.cta), ctx);
   if (heading === null || body === null || cta === null) return null;
   const imageKey = asNonEmptyString(props.image);
   return (
@@ -158,19 +181,20 @@ function renderMinistryListBlock(
   return <MinistryList items={items} headingClassName={ctx.headingClassName} />;
 }
 
-function asEvents(value: unknown): EventListEvent[] {
+function asEvents(value: unknown, ctx: BlockRenderContext): EventListEvent[] {
   return asArray(value).flatMap((raw) => {
     if (!isRecord(raw)) return [];
     const title = asNonEmptyString(raw.title);
     const startsAt = asNonEmptyString(raw.startsAt);
     if (title === null || startsAt === null) return [];
+    const href = sanitizeHref(raw.href);
     return [
       {
         title,
         startsAt,
         endsAt: asNonEmptyString(raw.endsAt) ?? undefined,
         location: asNonEmptyString(raw.location) ?? undefined,
-        href: sanitizeHref(raw.href) ?? undefined,
+        href: href ? resolveHref(href, ctx) : undefined,
       },
     ];
   });
@@ -180,7 +204,7 @@ function renderEventListBlock(
   props: Record<string, unknown>,
   ctx: BlockRenderContext,
 ): ReactElement | null {
-  const events = asEvents(props.events);
+  const events = asEvents(props.events, ctx);
   if (events.length === 0) return null;
   return <EventList events={events} headingClassName={ctx.headingClassName} />;
 }
@@ -197,11 +221,14 @@ function renderSermonEmbedBlock(
   );
 }
 
-function renderDonateLinkBlock(props: Record<string, unknown>): ReactElement | null {
+function renderDonateLinkBlock(
+  props: Record<string, unknown>,
+  ctx: BlockRenderContext,
+): ReactElement | null {
   const label = asNonEmptyString(props.label);
   const href = sanitizeHref(props.href);
   if (label === null || href === null) return null;
-  return <DonateLink label={label} href={href} />;
+  return <DonateLink label={label} href={resolveHref(href, ctx)} />;
 }
 
 function renderProseBlock(

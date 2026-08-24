@@ -14,6 +14,14 @@ const SermonEmbed_1 = require("./components/SermonEmbed");
 const StaffList_1 = require("./components/StaffList");
 const ValuesGrid_1 = require("./components/ValuesGrid");
 const utils_1 = require("./utils");
+/** `sanitizeHref` already narrows a content-authored href to one of three
+ * shapes: bundle-relative (`/...`), same-page anchor (`#...`), or an
+ * absolute http(s)/mailto/tel URL. Only the first shape is this bundle's
+ * own — that's the one `pageUrl` needs to prefix; a hash or an external URL
+ * passes through unchanged. */
+function resolveHref(href, ctx) {
+    return href.startsWith("/") ? ctx.pageUrl(href) : href;
+}
 function renderHeroBlock(props, ctx) {
     const heading = (0, utils_1.asNonEmptyString)(props.heading);
     if (heading === null)
@@ -26,12 +34,15 @@ function renderHeroBlock(props, ctx) {
         body: (0, utils_1.asNonEmptyString)(props.body) ?? undefined,
         imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined,
         imageAlt: (0, utils_1.asNonEmptyString)(props.imageAlt) ?? undefined,
-        cta: (0, utils_1.asCta)(props.cta) ?? undefined,
+        cta: resolveCta((0, utils_1.asCta)(props.cta), ctx) ?? undefined,
         headingClassName: ctx.headingClassName,
     };
     return (0, jsx_runtime_1.jsx)(Hero_1.Hero, { ...heroProps });
 }
-function asFeatureGridItems(value) {
+function resolveCta(cta, ctx) {
+    return cta ? { ...cta, href: resolveHref(cta.href, ctx) } : null;
+}
+function asFeatureGridItems(value, ctx) {
     return (0, utils_1.asArray)(value).flatMap((raw) => {
         if (!(0, utils_1.isRecord)(raw))
             return [];
@@ -40,11 +51,11 @@ function asFeatureGridItems(value) {
         const href = (0, utils_1.sanitizeHref)(raw.href);
         if (heading === null || body === null || href === null)
             return [];
-        return [{ heading, body, href }];
+        return [{ heading, body, href: resolveHref(href, ctx) }];
     });
 }
 function renderFeatureGridBlock(props, ctx) {
-    const items = asFeatureGridItems(props.items);
+    const items = asFeatureGridItems(props.items, ctx);
     if (items.length === 0)
         return null;
     return (0, jsx_runtime_1.jsx)(FeatureGrid_1.FeatureGrid, { items: items, headingClassName: ctx.headingClassName });
@@ -52,7 +63,7 @@ function renderFeatureGridBlock(props, ctx) {
 function renderCalloutBlock(props, ctx) {
     const heading = (0, utils_1.asNonEmptyString)(props.heading);
     const body = (0, utils_1.asNonEmptyString)(props.body);
-    const cta = (0, utils_1.asCta)(props.cta);
+    const cta = resolveCta((0, utils_1.asCta)(props.cta), ctx);
     if (heading === null || body === null || cta === null)
         return null;
     const imageKey = (0, utils_1.asNonEmptyString)(props.image);
@@ -113,7 +124,7 @@ function renderMinistryListBlock(props, ctx) {
         return null;
     return (0, jsx_runtime_1.jsx)(MinistryList_1.MinistryList, { items: items, headingClassName: ctx.headingClassName });
 }
-function asEvents(value) {
+function asEvents(value, ctx) {
     return (0, utils_1.asArray)(value).flatMap((raw) => {
         if (!(0, utils_1.isRecord)(raw))
             return [];
@@ -121,19 +132,20 @@ function asEvents(value) {
         const startsAt = (0, utils_1.asNonEmptyString)(raw.startsAt);
         if (title === null || startsAt === null)
             return [];
+        const href = (0, utils_1.sanitizeHref)(raw.href);
         return [
             {
                 title,
                 startsAt,
                 endsAt: (0, utils_1.asNonEmptyString)(raw.endsAt) ?? undefined,
                 location: (0, utils_1.asNonEmptyString)(raw.location) ?? undefined,
-                href: (0, utils_1.sanitizeHref)(raw.href) ?? undefined,
+                href: href ? resolveHref(href, ctx) : undefined,
             },
         ];
     });
 }
 function renderEventListBlock(props, ctx) {
-    const events = asEvents(props.events);
+    const events = asEvents(props.events, ctx);
     if (events.length === 0)
         return null;
     return (0, jsx_runtime_1.jsx)(EventList_1.EventList, { events: events, headingClassName: ctx.headingClassName });
@@ -145,12 +157,12 @@ function renderSermonEmbedBlock(props, ctx) {
         return null;
     return ((0, jsx_runtime_1.jsx)(SermonEmbed_1.SermonEmbed, { liveUrl: liveUrl, archiveUrl: archiveUrl, headingClassName: ctx.headingClassName }));
 }
-function renderDonateLinkBlock(props) {
+function renderDonateLinkBlock(props, ctx) {
     const label = (0, utils_1.asNonEmptyString)(props.label);
     const href = (0, utils_1.sanitizeHref)(props.href);
     if (label === null || href === null)
         return null;
-    return (0, jsx_runtime_1.jsx)(DonateLink_1.DonateLink, { label: label, href: href });
+    return (0, jsx_runtime_1.jsx)(DonateLink_1.DonateLink, { label: label, href: resolveHref(href, ctx) });
 }
 function renderProseBlock(props, ctx) {
     const body = (0, utils_1.asString)(props.body);
