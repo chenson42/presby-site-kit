@@ -89,6 +89,38 @@
   opacity: 0.9;
 }
 
+/* The hamburger toggle: a real <button>, hidden outside the narrow-viewport
+ * breakpoint below. `[data-slot="bar"]` is the row it lives in; the row
+ * itself is also hidden at desktop width, since `ul` alone is the nav row
+ * there, exactly as before this component gained a toggle. */
+.presby-site [data-block="nav"] [data-slot="bar"] {
+  display: none;
+}
+
+.presby-site [data-block="nav"] button[data-slot="menu-toggle"] {
+  appearance: none;
+  background: none;
+  border: none;
+  margin: 0;
+  padding: 0.5rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.presby-site [data-block="nav"] button[data-slot="menu-toggle"] span {
+  display: block;
+  width: 1.5rem;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--foreground);
+}
+
 /* ---------------------------------------------------------------------
  * Section rhythm -- every top-level block gets consistent spacing and a
  * shared max-width, without each component having to repeat it.
@@ -435,8 +467,25 @@
  * ------------------------------------------------------------------- */
 
 @media (max-width: 640px) {
+  .presby-site [data-block="nav"] [data-slot="bar"] {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.5rem 1rem 0;
+  }
+
   .presby-site [data-block="nav"] ul {
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1rem 1rem;
+  }
+
+  .presby-site [data-block="nav"] ul[data-open="false"] {
+    display: none;
+  }
+
+  .presby-site [data-block="nav"] ul[data-open="true"] {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
   }
 
   .presby-site [data-block="nav"] a {
@@ -447,6 +496,7 @@
     margin-left: 0;
     width: 100%;
     order: 99;
+    margin-top: 0.5rem;
   }
 
   .presby-site [data-block="nav"] li[data-slot="portal-login"] a {

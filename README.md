@@ -7,7 +7,25 @@ one entry point, `renderSiteBundle()`, to turn a normalized content bundle
 repo's own CI) into JSX — rendered inside presby's own server process, not a
 per-org deployment.
 
-## Status: v3.2.0
+## Status: v3.3.0
+
+**v3.3.0: `Nav` actually collapses to a hamburger menu under 640px.**
+v3.2.0's own narrow-viewport fix only stopped the nav from overflowing —
+`Nav` still rendered every link inline and let them wrap, which read as
+broken chrome, not a responsive menu. `Nav` is now this package's one
+client component (`"use client"` — every other piece stays a pure
+server-rendered function): a real `<button>` with `aria-expanded` toggles
+`ul[data-open]` between `flex` and `none` at the CSS breakpoint, clicking a
+link closes the menu again, and the button itself is CSS-hidden outside
+that breakpoint so desktop rendering is unchanged. Because `Nav` is now a
+client component, its props changed shape: `NavProps` no longer takes
+`pages`/`pageUrl` (a closure can't cross the client boundary) — it takes an
+already-resolved `entries: { path, label, href }[]`, computed server-side
+by `renderSiteBundle()` exactly as before. `RenderSiteBundleInput` itself
+is unchanged; only `Nav`'s own prop shape moved, and this package's own
+docs have always described `Nav`/`NavProps` as exposed for testing, not a
+second integration surface — `renderSiteBundle()` remains the only contract
+presby's own code depends on.
 
 **v3.2.0 fixes two real defects, both found by clicking through a real
 fixture site rather than trusting the unit suite alone.**

@@ -1,9 +1,9 @@
 import { Fragment, type ReactElement } from "react";
 import { ALLOWED_BLOCK_TYPES, BLOCK_REGISTRY, type BlockRenderContext } from "./blocks";
 import { Footer } from "./components/Footer";
-import { Nav } from "./components/Nav";
+import { Nav, type NavEntry } from "./components/Nav";
 import type { ContentBlock, RenderSiteBundleProfile, SiteKitPage } from "./types";
-import { isRecord } from "./utils";
+import { asNonEmptyString, isRecord } from "./utils";
 
 export type { SiteKitPage } from "./types";
 
@@ -93,6 +93,22 @@ function isContentBlockShape(value: unknown): value is { type: string; props: un
   return isRecord(value) && typeof value.type === "string";
 }
 
+/** A page opts into nav by setting `frontMatter.navLabel` to a non-empty
+ * string, in whatever order the bundle's own `pages` array lists them —
+ * this package never reorders or infers an order from `path`. Resolved
+ * here, server-side, rather than inside `Nav` itself: `Nav` is a client
+ * component (it owns the narrow-viewport open/closed toggle state), so it
+ * can only receive serializable props — `pageUrl`, a closure, cannot cross
+ * that boundary, but the plain `{ path, label, href }` this produces can. */
+function navEntriesFor(pages: SiteKitPage[], pageUrl: (path: string) => string): NavEntry[] {
+  return pages.flatMap((page) => {
+    const label = isRecord(page.frontMatter)
+      ? asNonEmptyString(page.frontMatter.navLabel)
+      : null;
+    return label ? [{ path: page.path, label, href: pageUrl(page.path) }] : [];
+  });
+}
+
 /** Defensive narrowing of `page.mdxAst` into `ContentBlock[]`. Anything
  * that isn't the expected `{ blocks: [...] }` shape — including every
  * legacy v0.0.1-stub `{ raw: string }` page still sitting in an
@@ -156,9 +172,8 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
       }
     >
       <Nav
-        pages={input.pages}
+        entries={navEntriesFor(input.pages, input.pageUrl)}
         currentPath={input.currentPath}
-        pageUrl={input.pageUrl}
         portalUrl={input.portalUrl}
       />
       {rendered.map(({ key, element }) => (

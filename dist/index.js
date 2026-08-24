@@ -11,6 +11,21 @@ const utils_1 = require("./utils");
 function isContentBlockShape(value) {
     return (0, utils_1.isRecord)(value) && typeof value.type === "string";
 }
+/** A page opts into nav by setting `frontMatter.navLabel` to a non-empty
+ * string, in whatever order the bundle's own `pages` array lists them —
+ * this package never reorders or infers an order from `path`. Resolved
+ * here, server-side, rather than inside `Nav` itself: `Nav` is a client
+ * component (it owns the narrow-viewport open/closed toggle state), so it
+ * can only receive serializable props — `pageUrl`, a closure, cannot cross
+ * that boundary, but the plain `{ path, label, href }` this produces can. */
+function navEntriesFor(pages, pageUrl) {
+    return pages.flatMap((page) => {
+        const label = (0, utils_1.isRecord)(page.frontMatter)
+            ? (0, utils_1.asNonEmptyString)(page.frontMatter.navLabel)
+            : null;
+        return label ? [{ path: page.path, label, href: pageUrl(page.path) }] : [];
+    });
+}
 /** Defensive narrowing of `page.mdxAst` into `ContentBlock[]`. Anything
  * that isn't the expected `{ blocks: [...] }` shape — including every
  * legacy v0.0.1-stub `{ raw: string }` page still sitting in an
@@ -68,7 +83,7 @@ function renderSiteBundle(input) {
         .filter((entry) => entry !== null);
     return ((0, jsx_runtime_1.jsxs)("div", { className: input.brand?.fontPairing.bodyClassName
             ? `presby-site ${input.brand.fontPairing.bodyClassName}`
-            : "presby-site", children: [(0, jsx_runtime_1.jsx)(Nav_1.Nav, { pages: input.pages, currentPath: input.currentPath, pageUrl: input.pageUrl, portalUrl: input.portalUrl }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName })] }));
+            : "presby-site", children: [(0, jsx_runtime_1.jsx)(Nav_1.Nav, { entries: navEntriesFor(input.pages, input.pageUrl), currentPath: input.currentPath, portalUrl: input.portalUrl }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName })] }));
 }
 var blocks_2 = require("./blocks");
 Object.defineProperty(exports, "ALLOWED_BLOCK_TYPES", { enumerable: true, get: function () { return blocks_2.ALLOWED_BLOCK_TYPES; } });

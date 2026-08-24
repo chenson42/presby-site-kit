@@ -195,6 +195,28 @@ describe("renderSiteBundle — Nav composition", () => {
     );
     expect(screen.queryByRole("navigation", { name: "Site" })).toBeNull();
   });
+
+  it("ignores a non-string navLabel rather than throwing or rendering it", () => {
+    const weird: SiteKitPage = { path: "/weird", frontMatter: { navLabel: 42 }, mdxAst: {} };
+    render(
+      <>{renderSiteBundle(baseInput({ pages: [homeWithNav, weird], currentPath: "/" }))}</>,
+    );
+    // Only one real navLabel ("Home") and no portalUrl in this baseInput — still nothing.
+    expect(screen.queryByRole("navigation", { name: "Site" })).toBeNull();
+  });
+
+  it("Nav's page links resolve href through pageUrl, not the raw bundle path", () => {
+    render(
+      <>
+        {renderSiteBundle(
+          baseInput({ pages: [homeWithNav, aboutPage], currentPath: "/" }),
+        )}
+      </>,
+    );
+    expect(screen.getByRole("link", { name: "About" }).getAttribute("href")).toBe(
+      testPageUrl("/about"),
+    );
+  });
 });
 
 describe("renderSiteBundle — profile null-safety extends to the serviceTimes block", () => {

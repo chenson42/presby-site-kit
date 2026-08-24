@@ -1,19 +1,28 @@
-import type { ReactElement } from "react";
-import type { SiteKitPage } from "../types";
+import { type ReactElement } from "react";
+export interface NavEntry {
+    path: string;
+    label: string;
+    href: string;
+}
 export interface NavProps {
-    pages: SiteKitPage[];
+    /**
+     * Already resolved by the caller (`renderSiteBundle()`) — a plain
+     * `{ path, label, href }` per page whose `frontMatter.navLabel` is set,
+     * `href` already run through `pageUrl`. `Nav` is a client component (see
+     * below), so it can only receive serializable props across that
+     * boundary — a `pageUrl: (path: string) => string` closure, which this
+     * component took directly before it needed real open/closed state,
+     * cannot cross it. Resolving here instead, once, server-side, is also
+     * simpler than re-deriving the same list in two places.
+     */
+    entries: NavEntry[];
     currentPath: string;
-    /** presby's own URL builder — this package never assumes a `/site/<slug>`
-     * prefix, the same reasoning `imageUrl` already applies to asset links. */
-    pageUrl: (path: string) => string;
     /**
      * The member portal's own sign-in entry point (presby's `/o/<slug>`) —
-     * `null`-safe by construction like `brand`/`profile`, and a genuinely
-     * different URL scheme than `pageUrl` builds, so this package takes it as
-     * a plain string rather than trying to derive it from `pageUrl` itself.
-     * An unauthenticated visitor hitting this URL is presby's own Edge gate's
-     * job to bounce to sign-in with the right callback — this package only
-     * ever links to it, never decides who's signed in.
+     * `null`-safe by construction like `brand`/`profile`. An unauthenticated
+     * visitor hitting this URL is presby's own Edge gate's job to bounce to
+     * sign-in with the right callback — this package only ever links to it,
+     * never decides who's signed in.
      */
     portalUrl: string | null;
 }
@@ -29,5 +38,15 @@ export interface NavProps {
  * login link (shown whenever `portalUrl` is set, regardless of how many
  * public pages exist — a one-page site still has members who need to sign
  * in). The whole element renders `null` only when both are absent.
+ *
+ * A client component, the one in this whole package — every other piece is
+ * a pure server-rendered function. The narrow-viewport collapse (below
+ * `styles.css`'s 640px breakpoint) needs real open/closed state and a real
+ * `<button>` with `aria-expanded`; the CSS-only checkbox-hack alternative
+ * gives up correct AT semantics to avoid this one "use client", and this
+ * package is trusted first-party code, not a content repo's — the same
+ * trust boundary DESIGN-v1-components.md draws for *content* has nothing
+ * to say about this file. Outside the breakpoint the toggle button is
+ * simply hidden by CSS and the page-link list renders exactly as before.
  */
-export declare function Nav({ pages, currentPath, pageUrl, portalUrl }: NavProps): ReactElement | null;
+export declare function Nav({ entries, currentPath, portalUrl }: NavProps): ReactElement | null;
