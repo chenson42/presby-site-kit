@@ -1,6 +1,6 @@
 {
   "name": "presby-site-kit",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "presby's shared public-site rendering shell: renderSiteBundle() turns a normalized content bundle (typed content blocks + an org profile + brand tokens) into JSX, rendered against a fixed, allowlisted component library (Hero, FeatureGrid, Callout, ServiceTimes, StaffList, ValuesGrid, MinistryList, EventList, SermonEmbed, DonateLink, Prose, Nav, plus Footer chrome). An unrecognized block type is skipped, never executed — a content repo is a lower trust tier than presby's own code. See DESIGN-v1-components.md.",
   "license": "MIT",
   "private": false,
@@ -10,7 +10,8 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./styles.css": "./dist/styles.css"
   },
   "files": [
     "dist"
@@ -19,7 +20,7 @@
     "react": ">=19"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"require('fs').copyFileSync('src/styles.css','dist/styles.css')\"",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit -p tsconfig.test.json"

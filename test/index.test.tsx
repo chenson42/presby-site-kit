@@ -80,7 +80,7 @@ describe("renderSiteBundle — composition", () => {
         )}
       </>,
     );
-    expect(container.querySelector('[class="font-body"]')).not.toBeNull();
+    expect(container.querySelector(".presby-site.font-body")).not.toBeNull();
     expect(screen.getByRole("heading", { level: 1 }).className).toBe("font-heading");
   });
 });

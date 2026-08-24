@@ -65,7 +65,9 @@ function renderSiteBundle(input) {
         return { key: `${block.type}-${index}`, element };
     })
         .filter((entry) => entry !== null);
-    return ((0, jsx_runtime_1.jsxs)("div", { className: input.brand?.fontPairing.bodyClassName, children: [(0, jsx_runtime_1.jsx)(Nav_1.Nav, { pages: input.pages, currentPath: input.currentPath, pageUrl: input.pageUrl, portalUrl: input.portalUrl }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName })] }));
+    return ((0, jsx_runtime_1.jsxs)("div", { className: input.brand?.fontPairing.bodyClassName
+            ? `presby-site ${input.brand.fontPairing.bodyClassName}`
+            : "presby-site", children: [(0, jsx_runtime_1.jsx)(Nav_1.Nav, { pages: input.pages, currentPath: input.currentPath, pageUrl: input.pageUrl, portalUrl: input.portalUrl }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName })] }));
 }
 var blocks_2 = require("./blocks");
 Object.defineProperty(exports, "ALLOWED_BLOCK_TYPES", { enumerable: true, get: function () { return blocks_2.ALLOWED_BLOCK_TYPES; } });

@@ -7,7 +7,22 @@ one entry point, `renderSiteBundle()`, to turn a normalized content bundle
 repo's own CI) into JSX — rendered inside presby's own server process, not a
 per-org deployment.
 
-## Status: v3.0.0
+## Status: v3.1.0
+
+**v3.1.0 adds a real stylesheet** — `presby-site-kit/styles.css`. Every
+component before this release rendered semantic HTML with no visual styling
+at all: no spacing, no typography scale, no card layout, nothing. The
+stylesheet is plain CSS, not Tailwind (this package builds independently of
+presby's own Tailwind config, which never scans `node_modules` for class
+names to generate), and it reads every color from the same CSS custom
+properties presby's own `globals.css` always defines (`--primary`,
+`--background`, `--card`, `--border`, `--muted-foreground`, `--radius`, ...).
+A congregation's own re-declared `--primary` (via `<BrandTokens>`) changes
+what a "Plan a visit" button looks like automatically — this stylesheet
+never hardcodes a color. presby imports it once, in the layout that already
+wraps every page under `/site/<slug>`. Not a breaking change: no type or
+function signature changed, only a new file consumers opt into importing.
+
 
 `renderSiteBundle()` renders a page's typed content blocks (`mdxAst.blocks`)
 against a **fixed component allowlist** — `Hero`, `FeatureGrid`, `Callout`,

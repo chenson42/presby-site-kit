@@ -147,7 +147,13 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
     .filter((entry): entry is { key: string; element: ReactElement } => entry !== null);
 
   return (
-    <div className={input.brand?.fontPairing.bodyClassName}>
+    <div
+      className={
+        input.brand?.fontPairing.bodyClassName
+          ? `presby-site ${input.brand.fontPairing.bodyClassName}`
+          : "presby-site"
+      }
+    >
       <Nav
         pages={input.pages}
         currentPath={input.currentPath}

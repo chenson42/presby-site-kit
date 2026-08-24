@@ -1,0 +1,429 @@
+/**
+ * presby-site-kit's own stylesheet. Plain CSS, not Tailwind: this package
+ * ships independently of presby's own build, so it can't rely on presby's
+ * Tailwind config scanning its compiled output for class names to
+ * generate. Every color/spacing/radius decision below reads from the same
+ * CSS custom properties presby's own globals.css always defines
+ * (--primary, --background, --foreground, --card, --border, --muted,
+ * --muted-foreground, --radius, ...) -- the ones <BrandTokens> re-declares
+ * per organization (DECISION-046's cascade-override model). This
+ * stylesheet never hardcodes a color; whichever organization's brand
+ * re-declared --primary decides what a "Plan a visit" button looks like,
+ * the same way a presby-native `bg-primary` class would.
+ *
+ * presby imports this file once, in the (public)/site/[slug]/layout.tsx
+ * that already wraps every page under that segment -- see this repo's own
+ * README "Consumability" section.
+ */
+
+.presby-site {
+  --site-gap: 3rem;
+  --site-max-width: 72rem;
+  --site-radius: var(--radius, 0.5rem);
+  color: var(--foreground);
+  background: var(--background);
+  line-height: 1.6;
+}
+
+.presby-site img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.presby-site a {
+  color: var(--primary);
+}
+
+/* ---------------------------------------------------------------------
+ * Nav
+ * ------------------------------------------------------------------- */
+
+.presby-site [data-block="nav"] {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--site-gap);
+}
+
+.presby-site [data-block="nav"] ul {
+  max-width: var(--site-max-width);
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.75rem;
+  list-style: none;
+}
+
+.presby-site [data-block="nav"] a {
+  color: var(--foreground);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.35rem 0;
+  border-bottom: 2px solid transparent;
+}
+
+.presby-site [data-block="nav"] a:hover {
+  color: var(--primary);
+}
+
+.presby-site [data-block="nav"] a[aria-current="page"] {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.presby-site [data-block="nav"] li[data-slot="portal-login"] {
+  margin-left: auto;
+}
+
+.presby-site [data-block="nav"] li[data-slot="portal-login"] a {
+  color: var(--primary-foreground);
+  background: var(--primary);
+  padding: 0.45rem 1rem;
+  border-radius: var(--site-radius);
+  border-bottom: none;
+}
+
+.presby-site [data-block="nav"] li[data-slot="portal-login"] a:hover {
+  opacity: 0.9;
+}
+
+/* ---------------------------------------------------------------------
+ * Section rhythm -- every top-level block gets consistent spacing and a
+ * shared max-width, without each component having to repeat it.
+ * ------------------------------------------------------------------- */
+
+.presby-site > [data-block] {
+  max-width: var(--site-max-width);
+  margin: 0 auto var(--site-gap);
+  padding: 0 1.5rem;
+}
+
+.presby-site > [data-block="hero"],
+.presby-site > [data-block="callout"] {
+  max-width: none;
+  padding: 0;
+}
+
+.presby-site h1,
+.presby-site h2,
+.presby-site h3 {
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+/* ---------------------------------------------------------------------
+ * Hero
+ * ------------------------------------------------------------------- */
+
+.presby-site [data-block="hero"] {
+  position: relative;
+  padding: 4rem 1.5rem;
+  text-align: center;
+  background: var(--muted);
+  overflow: hidden;
+}
+
+.presby-site [data-block="hero"] img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.28;
+  z-index: 0;
+}
+
+.presby-site [data-block="hero"] > :not(img) {
+  position: relative;
+  z-index: 1;
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.presby-site [data-block="hero"] [data-slot="eyebrow"] {
+  font-weight: 600;
+  color: var(--primary);
+  margin: 0 0 0.5rem;
+}
+
+.presby-site [data-block="hero"] h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  margin: 0 0 0.75rem;
+}
+
+.presby-site [data-block="hero"] [data-slot="tagline"] {
+  font-size: 1.25rem;
+  color: var(--muted-foreground);
+  margin: 0 0 1rem;
+}
+
+.presby-site [data-block="hero"] [data-slot="body"] {
+  color: var(--foreground);
+  margin: 0 0 1.5rem;
+}
+
+.presby-site [data-block="hero"] > a {
+  display: inline-block;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.65rem 1.5rem;
+  border-radius: var(--site-radius);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.presby-site [data-block="hero"] > a:hover {
+  opacity: 0.9;
+}
+
+/* ---------------------------------------------------------------------
+ * Card grids -- FeatureGrid, ValuesGrid, MinistryList, StaffList, EventList
+ * all share one grid + card treatment.
+ * ------------------------------------------------------------------- */
+
+.presby-site [data-block="feature-grid"] ul,
+.presby-site [data-block="values-grid"] ul,
+.presby-site [data-block="ministry-list"] ul,
+.presby-site [data-block="staff-list"] ul,
+.presby-site [data-block="event-list"] ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.5rem;
+}
+
+.presby-site [data-block="feature-grid"] li,
+.presby-site [data-block="values-grid"] li,
+.presby-site [data-block="ministry-list"] li,
+.presby-site [data-block="staff-list"] li,
+.presby-site [data-block="event-list"] li {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
+  border-radius: var(--site-radius);
+  padding: 1.5rem;
+}
+
+.presby-site [data-block="feature-grid"] li h2,
+.presby-site [data-block="values-grid"] li h3,
+.presby-site [data-block="ministry-list"] li h3,
+.presby-site [data-block="staff-list"] li h3,
+.presby-site [data-block="event-list"] li h3 {
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem;
+}
+
+.presby-site [data-block="feature-grid"] li p,
+.presby-site [data-block="values-grid"] li p,
+.presby-site [data-block="ministry-list"] li p,
+.presby-site [data-block="event-list"] li p {
+  margin: 0;
+  color: var(--muted-foreground);
+}
+
+.presby-site [data-block="feature-grid"] li a {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+}
+
+.presby-site [data-block="feature-grid"] li:hover {
+  border-color: var(--primary);
+}
+
+.presby-site [data-block="staff-list"] li img {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 999px;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+}
+
+.presby-site [data-block="staff-list"] li p {
+  margin: 0 0 0.25rem;
+  color: var(--muted-foreground);
+}
+
+.presby-site [data-block="staff-list"] li a {
+  display: block;
+  font-size: 0.9rem;
+}
+
+.presby-site [data-block="event-list"] li [data-slot="when"] {
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+}
+
+.presby-site [data-block="event-list"] li [data-slot="location"] {
+  color: var(--muted-foreground);
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------------
+ * Callout -- a full-width band, image optional
+ * ------------------------------------------------------------------- */
+
+.presby-site [data-block="callout"] {
+  display: grid;
+  grid-template-columns: 1fr;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.presby-site [data-block="callout"]:has(img) {
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+}
+
+.presby-site [data-block="callout"] img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 14rem;
+}
+
+.presby-site [data-block="callout"] > :not(img) {
+  padding: 2.5rem 1.5rem;
+  align-self: center;
+}
+
+.presby-site [data-block="callout"] h2 {
+  margin: 0 0 0.5rem;
+}
+
+.presby-site [data-block="callout"] p {
+  margin: 0 0 1.25rem;
+  color: inherit;
+  opacity: 0.85;
+}
+
+.presby-site [data-block="callout"] a {
+  display: inline-block;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--site-radius);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------
+ * Service times / office hours (the standalone block; Footer's own
+ * copies of these lists share the same rule via the shared class below)
+ * ------------------------------------------------------------------- */
+
+.presby-site [data-block="service-times"] h2,
+.presby-site [data-slot="service-times"] h2,
+.presby-site [data-slot="office-hours"] h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem;
+}
+
+.presby-site [data-block="service-times"] ul,
+.presby-site [data-slot="service-times"] ul,
+.presby-site [data-slot="office-hours"] ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* ---------------------------------------------------------------------
+ * Sermon embed, donate link, prose
+ * ------------------------------------------------------------------- */
+
+.presby-site [data-block="sermon-embed"] {
+  border: 1px solid var(--border);
+  border-radius: var(--site-radius);
+  padding: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+}
+
+.presby-site [data-block="sermon-embed"] h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 10rem;
+}
+
+.presby-site [data-block="sermon-embed"] a {
+  font-weight: 600;
+}
+
+.presby-site [data-block="donate-link"] {
+  display: inline-block;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--site-radius);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.presby-site [data-block="donate-link"]:hover {
+  opacity: 0.9;
+}
+
+.presby-site [data-block="prose"] {
+  max-width: 42rem;
+}
+
+.presby-site [data-block="prose"] h2,
+.presby-site [data-block="prose"] h3 {
+  margin: 1.5rem 0 0.5rem;
+}
+
+.presby-site [data-block="prose"] p {
+  margin: 0 0 1rem;
+}
+
+.presby-site [data-block="prose"] ul {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+}
+
+.presby-site [data-block="prose"] li {
+  margin: 0 0 0.35rem;
+}
+
+/* ---------------------------------------------------------------------
+ * Footer
+ * ------------------------------------------------------------------- */
+
+.presby-site [data-block="footer"] {
+  margin-top: calc(var(--site-gap) * 1.5);
+  padding: 2.5rem 1.5rem;
+  background: var(--muted);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem 3rem;
+}
+
+.presby-site [data-block="footer"] > * {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.presby-site [data-block="footer"] [data-slot="address"] p {
+  margin: 0 0 0.35rem;
+  color: var(--foreground);
+}
+
+.presby-site [data-block="footer"] [data-slot="social-links"] ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 1rem;
+}
