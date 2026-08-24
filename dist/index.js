@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ValuesGrid = exports.StaffList = exports.SermonEmbed = exports.ServiceTimes = exports.Prose = exports.Nav = exports.MinistryList = exports.Hero = exports.Footer = exports.FeatureGrid = exports.EventList = exports.DonateLink = exports.Callout = exports.ALLOWED_BLOCK_TYPES = void 0;
+exports.ValuesGrid = exports.StaffList = exports.SermonEmbed = exports.ServiceTimes = exports.Prose = exports.Nav = exports.MinistryList = exports.Hero = exports.Gallery = exports.Footer = exports.FeatureGrid = exports.EventList = exports.DonateLink = exports.Callout = exports.ALLOWED_BLOCK_TYPES = void 0;
 exports.renderSiteBundle = renderSiteBundle;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
@@ -97,6 +97,8 @@ var FeatureGrid_1 = require("./components/FeatureGrid");
 Object.defineProperty(exports, "FeatureGrid", { enumerable: true, get: function () { return FeatureGrid_1.FeatureGrid; } });
 var Footer_2 = require("./components/Footer");
 Object.defineProperty(exports, "Footer", { enumerable: true, get: function () { return Footer_2.Footer; } });
+var Gallery_1 = require("./components/Gallery");
+Object.defineProperty(exports, "Gallery", { enumerable: true, get: function () { return Gallery_1.Gallery; } });
 var Hero_1 = require("./components/Hero");
 Object.defineProperty(exports, "Hero", { enumerable: true, get: function () { return Hero_1.Hero; } });
 var MinistryList_1 = require("./components/MinistryList");

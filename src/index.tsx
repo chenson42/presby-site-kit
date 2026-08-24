@@ -197,6 +197,8 @@ export { FeatureGrid } from "./components/FeatureGrid";
 export type { FeatureGridItem, FeatureGridProps } from "./components/FeatureGrid";
 export { Footer } from "./components/Footer";
 export type { FooterProps } from "./components/Footer";
+export { Gallery } from "./components/Gallery";
+export type { GalleryImage, GalleryProps } from "./components/Gallery";
 export { Hero } from "./components/Hero";
 export type { HeroProps } from "./components/Hero";
 export { MinistryList } from "./components/MinistryList";

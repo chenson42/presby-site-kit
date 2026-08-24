@@ -7,6 +7,40 @@ one entry point, `renderSiteBundle()`, to turn a normalized content bundle
 repo's own CI) into JSX — rendered inside presby's own server process, not a
 per-org deployment.
 
+## Status: v3.4.0
+
+**v3.4.0 closes two real gaps found migrating a real congregation's real
+site into a content repo** — not a fixture, a real church replacing its
+real WordPress site. Both were found the same way v3.1.0–v3.3.0's fixes
+were: building against real content surfaced what this package's fixture
+testing hadn't.
+
+**`featureGrid`, `valuesGrid`, and `ministryList` gained an optional
+per-item image.** Before this release, the only image-carrying blocks were
+`hero`, `callout` (image plus a *required* cta), and `staffList`
+(per-person `photoUrl`). That's a real gap, not a corner case: a photo
+paired with plain text and no button is the single most common non-hero
+layout on a real congregation's site, and it had no block that could carry
+both. `FeatureGridItem`/`ValuesGridItem`/`MinistryListItem` each gain an
+optional `imageUrl`/`imageAlt`, mirroring `StaffPerson.photoUrl`'s existing
+pattern exactly — content-authored as an `image` manifestKey, resolved the
+same way every other block already resolves one. Not a breaking change: an
+item with no image renders exactly as it always has.
+
+**A new `gallery` block** — the multi-image case `hero`/`callout`'s
+single image could never cover. Content-authored as
+`{ type: "gallery", props: { images: [...] } }`, where each entry is
+either a plain manifestKey string or `{ image, alt }`. Renders as a
+single-image-at-a-time auto-playing carousel, matching the reference
+site's own carousel behavior — but auto-play is never the *only* way to
+move through it: a play/pause toggle, pause-on-hover, pause-on-focus, and
+a `prefers-reduced-motion` check (auto-play never starts at all when the
+visitor's OS requests reduced motion) are all real requirements, not
+decoration — uncontrollable auto-advancing content is a WCAG 2.2.2 failure.
+`Gallery` is this package's **second** client component, after `Nav`; a
+real timer and real play/paused state can't be server-rendered. Every
+other piece of this library stays a pure server function.
+
 ## Status: v3.3.0
 
 **v3.3.0: `Nav` actually collapses to a hamburger menu under 640px.**

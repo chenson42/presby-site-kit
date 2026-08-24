@@ -3,6 +3,7 @@ import { Callout } from "./components/Callout";
 import { DonateLink } from "./components/DonateLink";
 import { EventList, type EventListEvent } from "./components/EventList";
 import { FeatureGrid, type FeatureGridItem } from "./components/FeatureGrid";
+import { Gallery, type GalleryImage } from "./components/Gallery";
 import { Hero, type HeroProps } from "./components/Hero";
 import { MinistryList, type MinistryListItem } from "./components/MinistryList";
 import { Prose } from "./components/Prose";
@@ -82,7 +83,16 @@ function asFeatureGridItems(value: unknown, ctx: BlockRenderContext): FeatureGri
     const body = asNonEmptyString(raw.body);
     const href = sanitizeHref(raw.href);
     if (heading === null || body === null || href === null) return [];
-    return [{ heading, body, href: resolveHref(href, ctx) }];
+    const imageKey = asNonEmptyString(raw.image);
+    return [
+      {
+        heading,
+        body,
+        href: resolveHref(href, ctx),
+        imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined,
+        imageAlt: asNonEmptyString(raw.imageAlt) ?? undefined,
+      },
+    ];
   });
 }
 
@@ -153,13 +163,24 @@ function renderStaffListBlock(
   return <StaffList people={people} headingClassName={ctx.headingClassName} />;
 }
 
-function asHeadingBodyItems(value: unknown): { heading: string; body: string }[] {
+function asHeadingBodyImageItems(
+  value: unknown,
+  ctx: BlockRenderContext,
+): { heading: string; body: string; imageUrl?: string; imageAlt?: string }[] {
   return asArray(value).flatMap((raw) => {
     if (!isRecord(raw)) return [];
     const heading = asNonEmptyString(raw.heading);
     const body = asNonEmptyString(raw.body);
     if (heading === null || body === null) return [];
-    return [{ heading, body }];
+    const imageKey = asNonEmptyString(raw.image);
+    return [
+      {
+        heading,
+        body,
+        imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined,
+        imageAlt: asNonEmptyString(raw.imageAlt) ?? undefined,
+      },
+    ];
   });
 }
 
@@ -167,7 +188,7 @@ function renderValuesGridBlock(
   props: Record<string, unknown>,
   ctx: BlockRenderContext,
 ): ReactElement | null {
-  const items: ValuesGridItem[] = asHeadingBodyItems(props.items);
+  const items: ValuesGridItem[] = asHeadingBodyImageItems(props.items, ctx);
   if (items.length === 0) return null;
   return <ValuesGrid items={items} headingClassName={ctx.headingClassName} />;
 }
@@ -176,9 +197,34 @@ function renderMinistryListBlock(
   props: Record<string, unknown>,
   ctx: BlockRenderContext,
 ): ReactElement | null {
-  const items: MinistryListItem[] = asHeadingBodyItems(props.items);
+  const items: MinistryListItem[] = asHeadingBodyImageItems(props.items, ctx);
   if (items.length === 0) return null;
   return <MinistryList items={items} headingClassName={ctx.headingClassName} />;
+}
+
+function asGalleryImages(value: unknown, ctx: BlockRenderContext): GalleryImage[] {
+  return asArray(value).flatMap((raw) => {
+    if (typeof raw === "string") {
+      const key = asNonEmptyString(raw);
+      return key ? [{ url: ctx.imageUrl(key), alt: "" }] : [];
+    }
+    if (isRecord(raw)) {
+      const key = asNonEmptyString(raw.image);
+      if (key === null) return [];
+      return [{ url: ctx.imageUrl(key), alt: asNonEmptyString(raw.alt) ?? "" }];
+    }
+    return [];
+  });
+}
+
+function renderGalleryBlock(
+  props: Record<string, unknown>,
+  ctx: BlockRenderContext,
+): ReactElement | null {
+  const images = asGalleryImages(props.images, ctx);
+  if (images.length === 0) return null;
+  const intervalMs = typeof props.intervalMs === "number" ? props.intervalMs : undefined;
+  return <Gallery images={images} intervalMs={intervalMs} />;
 }
 
 function asEvents(value: unknown, ctx: BlockRenderContext): EventListEvent[] {
@@ -252,6 +298,7 @@ export const BLOCK_REGISTRY: Record<string, BlockRenderer> = {
   sermonEmbed: renderSermonEmbedBlock,
   donateLink: renderDonateLinkBlock,
   prose: renderProseBlock,
+  gallery: renderGalleryBlock,
 };
 
 /** Every block `type` this release recognizes — anything else is skipped

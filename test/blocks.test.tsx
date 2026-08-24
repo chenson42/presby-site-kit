@@ -10,13 +10,14 @@ const baseCtx: BlockRenderContext = {
 };
 
 describe("ALLOWED_BLOCK_TYPES / BLOCK_REGISTRY", () => {
-  it("lists exactly the design note's eleven block types", () => {
+  it("lists the design note's eleven block types plus v3.4.0's gallery", () => {
     expect([...ALLOWED_BLOCK_TYPES].sort()).toEqual(
       [
         "callout",
         "donateLink",
         "eventList",
         "featureGrid",
+        "gallery",
         "hero",
         "ministryList",
         "prose",
@@ -144,5 +145,70 @@ describe("individual block renderers — malformed props render nothing, not a t
 
   it("sermonEmbed: neither url set renders null", () => {
     expect(BLOCK_REGISTRY.sermonEmbed({}, baseCtx)).toBeNull();
+  });
+
+  it("featureGrid: an item's optional image manifestKey resolves through ctx.imageUrl", () => {
+    const element = BLOCK_REGISTRY.featureGrid(
+      { items: [{ heading: "Worship", body: "Sundays", href: "/worship", image: "worship-card" }] },
+      baseCtx,
+    );
+    const { container } = render(<>{element}</>);
+    expect((container.querySelector("img") as HTMLImageElement).src).toBe(
+      testImageUrl("worship-card"),
+    );
+  });
+
+  it("valuesGrid: an item's optional image manifestKey resolves through ctx.imageUrl, and is absent when unset", () => {
+    const withImage = BLOCK_REGISTRY.valuesGrid(
+      { items: [{ heading: "Purposeful", body: "...", image: "purposeful" }] },
+      baseCtx,
+    );
+    const { container: c1 } = render(<>{withImage}</>);
+    expect((c1.querySelector("img") as HTMLImageElement).src).toBe(testImageUrl("purposeful"));
+
+    const withoutImage = BLOCK_REGISTRY.valuesGrid(
+      { items: [{ heading: "Purposeful", body: "..." }] },
+      baseCtx,
+    );
+    const { container: c2 } = render(<>{withoutImage}</>);
+    expect(c2.querySelector("img")).toBeNull();
+  });
+
+  it("ministryList: an item's optional image manifestKey resolves through ctx.imageUrl", () => {
+    const element = BLOCK_REGISTRY.ministryList(
+      { items: [{ heading: "Food Pantry", body: "...", image: "pantry" }] },
+      baseCtx,
+    );
+    const { container } = render(<>{element}</>);
+    expect((container.querySelector("img") as HTMLImageElement).src).toBe(
+      testImageUrl("pantry"),
+    );
+  });
+
+  it("gallery: resolves plain-string manifestKeys through ctx.imageUrl with decorative alt — Gallery shows one image at a time, but two entries means dot navigation renders", () => {
+    const element = BLOCK_REGISTRY.gallery({ images: ["a", "b"] }, baseCtx);
+    const { container } = render(<>{element}</>);
+    const image = container.querySelector("img") as HTMLImageElement;
+    expect(image.src).toBe(testImageUrl("a"));
+    expect(image.alt).toBe("");
+    expect(container.querySelectorAll('[role="tab"]').length).toBe(2);
+  });
+
+  it("gallery: accepts {image, alt} object entries alongside plain strings, and drops an entry with no image key", () => {
+    const element = BLOCK_REGISTRY.gallery(
+      { images: [{ image: "a", alt: "The sanctuary" }, "b", { image: "" }] },
+      baseCtx,
+    );
+    const { container } = render(<>{element}</>);
+    const image = container.querySelector("img") as HTMLImageElement;
+    expect(image.src).toBe(testImageUrl("a"));
+    expect(image.alt).toBe("The sanctuary");
+    // Two valid entries ("a" and "b") — the empty-image third entry was dropped.
+    expect(container.querySelectorAll('[role="tab"]').length).toBe(2);
+  });
+
+  it("gallery: an empty images array renders null, not an empty shell", () => {
+    expect(BLOCK_REGISTRY.gallery({ images: [] }, baseCtx)).toBeNull();
+    expect(BLOCK_REGISTRY.gallery({}, baseCtx)).toBeNull();
   });
 });

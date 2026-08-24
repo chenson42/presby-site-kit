@@ -276,6 +276,22 @@
   margin-bottom: 0.75rem;
 }
 
+/* feature-grid/values-grid/ministry-list cards' own optional per-item
+ * image (added alongside `gallery` — see README v3.4.0) bleeds to the
+ * card's edges rather than sitting inset like staff-list's circular
+ * avatar; a program/value card reads as a photo card, not a person. */
+.presby-site [data-block="feature-grid"] li img,
+.presby-site [data-block="values-grid"] li img,
+.presby-site [data-block="ministry-list"] li img {
+  width: calc(100% + 3rem);
+  max-width: none;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  margin: -1.5rem -1.5rem 1rem;
+  border-radius: calc(var(--site-radius) - 0.25rem)
+    calc(var(--site-radius) - 0.25rem) 0 0;
+}
+
 .presby-site [data-block="staff-list"] li p {
   margin: 0 0 0.25rem;
   color: var(--muted-foreground);
@@ -342,6 +358,58 @@
   border-radius: var(--site-radius);
   font-weight: 600;
   text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------
+ * Gallery -- single-image-at-a-time auto-playing carousel. The play/pause
+ * toggle is always rendered (never CSS-hidden) -- it's the accessible
+ * escape hatch from auto-advancing content, not decoration.
+ * ------------------------------------------------------------------- */
+
+.presby-site [data-block="gallery"] [data-slot="frame"] {
+  position: relative;
+  border-radius: var(--site-radius);
+  overflow: hidden;
+}
+
+.presby-site [data-block="gallery"] [data-slot="frame"] img {
+  width: 100%;
+  height: 24rem;
+  object-fit: cover;
+}
+
+.presby-site [data-block="gallery"] button[data-slot="play-toggle"] {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  background: rgb(0 0 0 / 0.55);
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.presby-site [data-block="gallery"] [data-slot="dots"] {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.presby-site [data-block="gallery"] [data-slot="dots"] button {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  border: none;
+  padding: 0;
+  background: var(--border);
+  cursor: pointer;
+}
+
+.presby-site [data-block="gallery"] [data-slot="dots"] button[data-active="true"] {
+  background: var(--primary);
 }
 
 /* ---------------------------------------------------------------------
@@ -529,5 +597,9 @@
     flex-direction: column;
     gap: 1.5rem;
     padding: 2rem 1.25rem;
+  }
+
+  .presby-site [data-block="gallery"] [data-slot="frame"] img {
+    height: 16rem;
   }
 }

@@ -20,4 +20,24 @@ describe("ValuesGrid", () => {
     const { container } = render(<ValuesGrid items={[]} />);
     expect(container.innerHTML).toBe("");
   });
+
+  it("renders an item's optional image, and omits the image entirely when unset", () => {
+    const { container } = render(
+      <ValuesGrid
+        items={[
+          {
+            heading: "Purposeful",
+            body: "We show up with intention.",
+            imageUrl: "https://cdn.example.invalid/purposeful.jpg",
+          },
+          { heading: "Personal", body: "We know each other's names." },
+        ]}
+      />,
+    );
+    const images = container.querySelectorAll("img");
+    expect(images.length).toBe(1);
+    expect((images[0] as HTMLImageElement).src).toBe(
+      "https://cdn.example.invalid/purposeful.jpg",
+    );
+  });
 });

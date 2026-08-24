@@ -3,6 +3,11 @@ export interface FeatureGridItem {
     heading: string;
     body: string;
     href: string;
+    /** An already-resolved image URL — see Hero.tsx's own note on the same
+     * pattern for `image`/`photo` manifestKeys. Optional: a card with no
+     * image renders exactly as it always has. */
+    imageUrl?: string;
+    imageAlt?: string;
 }
 export interface FeatureGridProps {
     items: FeatureGridItem[];

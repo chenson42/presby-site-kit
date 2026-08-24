@@ -6,6 +6,7 @@ const Callout_1 = require("./components/Callout");
 const DonateLink_1 = require("./components/DonateLink");
 const EventList_1 = require("./components/EventList");
 const FeatureGrid_1 = require("./components/FeatureGrid");
+const Gallery_1 = require("./components/Gallery");
 const Hero_1 = require("./components/Hero");
 const MinistryList_1 = require("./components/MinistryList");
 const Prose_1 = require("./components/Prose");
@@ -51,7 +52,16 @@ function asFeatureGridItems(value, ctx) {
         const href = (0, utils_1.sanitizeHref)(raw.href);
         if (heading === null || body === null || href === null)
             return [];
-        return [{ heading, body, href: resolveHref(href, ctx) }];
+        const imageKey = (0, utils_1.asNonEmptyString)(raw.image);
+        return [
+            {
+                heading,
+                body,
+                href: resolveHref(href, ctx),
+                imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined,
+                imageAlt: (0, utils_1.asNonEmptyString)(raw.imageAlt) ?? undefined,
+            },
+        ];
     });
 }
 function renderFeatureGridBlock(props, ctx) {
@@ -101,7 +111,7 @@ function renderStaffListBlock(props, ctx) {
         return null;
     return (0, jsx_runtime_1.jsx)(StaffList_1.StaffList, { people: people, headingClassName: ctx.headingClassName });
 }
-function asHeadingBodyItems(value) {
+function asHeadingBodyImageItems(value, ctx) {
     return (0, utils_1.asArray)(value).flatMap((raw) => {
         if (!(0, utils_1.isRecord)(raw))
             return [];
@@ -109,20 +119,50 @@ function asHeadingBodyItems(value) {
         const body = (0, utils_1.asNonEmptyString)(raw.body);
         if (heading === null || body === null)
             return [];
-        return [{ heading, body }];
+        const imageKey = (0, utils_1.asNonEmptyString)(raw.image);
+        return [
+            {
+                heading,
+                body,
+                imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined,
+                imageAlt: (0, utils_1.asNonEmptyString)(raw.imageAlt) ?? undefined,
+            },
+        ];
     });
 }
 function renderValuesGridBlock(props, ctx) {
-    const items = asHeadingBodyItems(props.items);
+    const items = asHeadingBodyImageItems(props.items, ctx);
     if (items.length === 0)
         return null;
     return (0, jsx_runtime_1.jsx)(ValuesGrid_1.ValuesGrid, { items: items, headingClassName: ctx.headingClassName });
 }
 function renderMinistryListBlock(props, ctx) {
-    const items = asHeadingBodyItems(props.items);
+    const items = asHeadingBodyImageItems(props.items, ctx);
     if (items.length === 0)
         return null;
     return (0, jsx_runtime_1.jsx)(MinistryList_1.MinistryList, { items: items, headingClassName: ctx.headingClassName });
+}
+function asGalleryImages(value, ctx) {
+    return (0, utils_1.asArray)(value).flatMap((raw) => {
+        if (typeof raw === "string") {
+            const key = (0, utils_1.asNonEmptyString)(raw);
+            return key ? [{ url: ctx.imageUrl(key), alt: "" }] : [];
+        }
+        if ((0, utils_1.isRecord)(raw)) {
+            const key = (0, utils_1.asNonEmptyString)(raw.image);
+            if (key === null)
+                return [];
+            return [{ url: ctx.imageUrl(key), alt: (0, utils_1.asNonEmptyString)(raw.alt) ?? "" }];
+        }
+        return [];
+    });
+}
+function renderGalleryBlock(props, ctx) {
+    const images = asGalleryImages(props.images, ctx);
+    if (images.length === 0)
+        return null;
+    const intervalMs = typeof props.intervalMs === "number" ? props.intervalMs : undefined;
+    return (0, jsx_runtime_1.jsx)(Gallery_1.Gallery, { images: images, intervalMs: intervalMs });
 }
 function asEvents(value, ctx) {
     return (0, utils_1.asArray)(value).flatMap((raw) => {
@@ -182,6 +222,7 @@ exports.BLOCK_REGISTRY = {
     sermonEmbed: renderSermonEmbedBlock,
     donateLink: renderDonateLinkBlock,
     prose: renderProseBlock,
+    gallery: renderGalleryBlock,
 };
 /** Every block `type` this release recognizes — anything else is skipped
  * by `renderSiteBundle()`, never rendered, never executed. */
