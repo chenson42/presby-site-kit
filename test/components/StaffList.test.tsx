@@ -10,7 +10,7 @@ describe("StaffList", () => {
           {
             name: "Alex Rivera",
             title: "Pastor",
-            phone: "555-0101",
+            phone: "555-0101 (office)",
             email: "pastor@example.invalid",
             photoUrl: "https://cdn.example.invalid/alex.jpg",
           },
@@ -19,9 +19,12 @@ describe("StaffList", () => {
     );
     expect(screen.getByRole("heading", { level: 3, name: "Alex Rivera" })).toBeTruthy();
     expect(screen.getByText("Pastor")).toBeTruthy();
-    expect(screen.getByRole("link", { name: "555-0101" }).getAttribute("href")).toBe(
-      "tel:555-0101",
-    );
+    // Phone is plain text, not a tel: link -- the reference's own
+    // leadership page (checked directly: raw HTML on both real staff
+    // entries) renders the phone number as plain text in the same <p> as
+    // the email, with no href at all. Only email is an actual link.
+    expect(screen.getByText("555-0101 (office)").tagName).toBe("P");
+    expect(screen.queryByRole("link", { name: "555-0101 (office)" })).toBeNull();
     expect(screen.getByRole("link", { name: "pastor@example.invalid" }).getAttribute("href")).toBe(
       "mailto:pastor@example.invalid",
     );

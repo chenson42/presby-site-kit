@@ -725,9 +725,42 @@
 
 .presby-site [data-block="staff-list"] li h3 {
   margin-top: 0;
+  /* The reference's own person-name heading (leadership: <h4>, 36px/700;
+   * committees: <h5>, 30px/400 -- checked directly on both live pages via
+   * computed style) is a real identity heading, not a compact card-tile
+   * label; the shared card-grid rule above (1.1rem, meant for short
+   * feature/value tile titles like "Worship") left it at ~17.6px, nowhere
+   * close to either real instance. 2rem/700 splits the two real
+   * measurements rather than overfitting to one page -- still a dramatic,
+   * confirmed improvement over the shared default on both consuming
+   * pages (leadership and committees). */
+  font-size: 2rem;
+  font-weight: 700;
 }
 
-.presby-site [data-block="staff-list"] li a:last-child {
+.presby-site [data-block="staff-list"] li p[data-slot="title"] {
+  /* Reference leadership page, computed style on the real <p
+   * class="large-text"> role line ("Pastor" etc.): 28px/400, color
+   * rgb(41,57,72) -- exactly --site-ink, NOT muted. Committees never sets
+   * a person title (StaffPerson.title is optional, see 75d7cf4), so this
+   * rule has no committees instance to conflict with. */
+  font-size: 1.75rem;
+  font-weight: 400;
+  color: var(--site-ink);
+}
+
+.presby-site [data-block="staff-list"] li p[data-slot="phone"] {
+  /* Reference leadership page, computed style on the real contact <p>
+   * (phone + emailed wrapped together): 16px, color rgb(41,57,72) --
+   * --site-ink, not the muted-foreground the generic `li p` rule below
+   * applies (that rule was written for the title line's old, wrong
+   * assumption that all staff-list <p> content should be de-emphasized). */
+  font-size: 1rem;
+  color: var(--site-ink);
+}
+
+.presby-site [data-block="staff-list"] li a:last-child,
+.presby-site [data-block="staff-list"] li p:last-child {
   margin-bottom: 1.25rem;
 }
 
@@ -748,13 +781,18 @@
 }
 
 .presby-site [data-block="staff-list"] li p {
+  /* No default color here anymore -- both real <p> slots (title, phone)
+   * are --site-ink on the reference, not muted; see their own [data-slot]
+   * rules above. */
   margin: 0 0 0.25rem;
-  color: var(--muted-foreground);
 }
 
 .presby-site [data-block="staff-list"] li a {
   display: block;
-  font-size: 0.9rem;
+  /* Reference's own contact-line font-size (computed on the real mailto
+   * link on the leadership page): 16px, not the 0.9rem/14.4px this
+   * carried before. */
+  font-size: 1rem;
 }
 
 .presby-site [data-block="event-list"] li [data-slot="when"] {

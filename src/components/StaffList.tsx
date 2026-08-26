@@ -37,10 +37,14 @@ export function StaffList({
               <img src={person.photoUrl} alt={person.name} />
             ) : null}
             <h3 className={headingClassName}>{person.name}</h3>
-            {person.title ? <p>{person.title}</p> : null}
-            {person.phone ? (
-              <a href={`tel:${person.phone}`}>{person.phone}</a>
-            ) : null}
+            {person.title ? <p data-slot="title">{person.title}</p> : null}
+            {/* Plain text, not a tel: link -- the reference's own leadership
+             * page (checked directly: computed style + raw HTML) renders
+             * phone as plain text in the SAME <p> as the email, e.g.
+             * "614-882-3155 (office)" -- no href, no anchor. Only email is
+             * an actual <a>. A caller that wants the "(office)"/"(cell)"
+             * annotation includes it directly in the phone string. */}
+            {person.phone ? <p data-slot="phone">{person.phone}</p> : null}
             {person.email ? (
               <a href={`mailto:${person.email}`}>{person.email}</a>
             ) : null}
