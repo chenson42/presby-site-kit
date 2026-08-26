@@ -12,6 +12,8 @@ function baseInput(overrides: Partial<RenderSiteBundleInput> = {}): RenderSiteBu
     pageUrl: testPageUrl,
     portalUrl: null,
     profile: null,
+    logoUrl: null,
+    organizationName: "Test Church",
     ...overrides,
   };
 }
