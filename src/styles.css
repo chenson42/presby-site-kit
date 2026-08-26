@@ -789,23 +789,26 @@
  * fits the section reasonably. */
 .presby-site [data-block="callout"] [data-slot="image"] {
   /* NOT width:100% -- that forces every photo, regardless of its own
-   * natural aspect ratio, into one fixed landscape-shaped box. A square
-   * source photo (confirmed: the reference's own real "Need medical
-   * equipment?" image is a genuine 322x322 square, rendered at its own
-   * natural size in a 400px column, not stretched) then needed
-   * object-fit:contain to avoid distortion, which pillarboxed ~110px of
-   * transparent gutter on each side -- and because that gutter is
-   * transparent, it just showed the section's own background color
-   * bleeding through, with no visual boundary for border-radius to ever
-   * curve against. The radius was genuinely being applied the whole time;
-   * it was only ever invisible. max-width (not width) plus intrinsic
-   * `auto` sizing lets the browser size each photo at its own real aspect
-   * ratio, capped only so an unusually large source image doesn't blow out
-   * the layout -- exactly what the reference does. */
+   * natural aspect ratio, into one fixed landscape-shaped box. Checked FOUR
+   * real callout images across two pages (home's square 322x322 MAP photo;
+   * children-youth's 1.501, 1.340, and 0.715-aspect photos) -- every single
+   * one measures box-aspect === natural-aspect, to three decimal places.
+   * The reference never crops or letterboxes a callout image: it renders
+   * each one at its own full intrinsic aspect ratio, scaled to the
+   * column's width, and the SECTION grows to whatever height that takes --
+   * confirmed up to 707px tall for a portrait photo, so there is no height
+   * cap at all, not even a generous one. An earlier version of this rule
+   * added max-height:24rem, which looked right for the one square photo
+   * this was first found on (384px happened to be exactly what a square
+   * needs at that column width) but silently squashed every genuinely
+   * portrait-oriented photo down to a cropped 384px instead of its real,
+   * much taller natural height -- caught by checking three more real
+   * images instead of generalizing from the one that happened not to
+   * expose the bug. max-width (not width) plus intrinsic `auto` sizing on
+   * both axes, no cap, is what actually matches every measured case. */
   max-width: 100%;
   width: auto;
   height: auto;
-  max-height: 24rem;
   /* Was entirely missing -- the reference's own callout image (both the
    * plain split layout AND the full-bleed inset band) is consistently
    * rounded at the site's own image radius; confirmed on two structurally
@@ -856,6 +859,24 @@
   margin: 0 0 1.25rem;
   color: inherit;
   opacity: 0.85;
+}
+
+/* [data-block="prose"] already restores this (line ~1098) but callout's own
+ * markdown-rendered body never got the same treatment -- the host app's own
+ * Tailwind preflight strips list-style/margin/padding from every <ul>
+ * before this stylesheet runs, so an authored "- item" markdown list in a
+ * callout's body rendered as plain unmarked lines with no bullet, no
+ * indent, confirmed on children-youth's "Sunday mornings" list against the
+ * reference's own visible bullet points. */
+.presby-site [data-block="callout"] [data-slot="body"] ul {
+  list-style: disc;
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+  opacity: 0.85;
+}
+
+.presby-site [data-block="callout"] [data-slot="body"] li {
+  margin: 0 0 0.35rem;
 }
 
 /* Scoped to the CTA link specifically (a direct child of [data-slot="content"],
