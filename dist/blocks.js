@@ -188,7 +188,8 @@ function renderGalleryBlock(props, ctx) {
     if (images.length === 0)
         return null;
     const intervalMs = typeof props.intervalMs === "number" ? props.intervalMs : undefined;
-    return (0, jsx_runtime_1.jsx)(Gallery_1.Gallery, { images: images, intervalMs: intervalMs });
+    const variant = props.variant === "grid" ? "grid" : "carousel";
+    return (0, jsx_runtime_1.jsx)(Gallery_1.Gallery, { images: images, intervalMs: intervalMs, variant: variant });
 }
 function asEvents(value, ctx) {
     return (0, utils_1.asArray)(value).flatMap((raw) => {

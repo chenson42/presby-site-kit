@@ -19,7 +19,7 @@ const react_1 = require("react");
  * timer and real open/closed-equivalent state can't be server-rendered.
  * Every other piece of this library stays a pure server function.
  */
-function Gallery({ images, intervalMs = 5000, }) {
+function Gallery({ images, intervalMs = 5000, variant = "carousel", }) {
     const [index, setIndex] = (0, react_1.useState)(0);
     const [playing, setPlaying] = (0, react_1.useState)(true);
     const [hovered, setHovered] = (0, react_1.useState)(false);
@@ -48,6 +48,16 @@ function Gallery({ images, intervalMs = 5000, }) {
     }, [advancing, count, intervalMs]);
     if (count === 0)
         return null;
+    // After ALL hooks above (Rules of Hooks) -- the grid variant is a plain
+    // static row with no carousel state of its own. A conditional return
+    // ABOVE the hooks would change the hook call count between renders the
+    // moment `variant` differs, which is exactly the bug this ordering
+    // avoids.
+    if (variant === "grid") {
+        return ((0, jsx_runtime_1.jsx)("section", { "data-block": "gallery", "data-variant": "grid", children: (0, jsx_runtime_1.jsx)("ul", { children: images.map((image, gridIndex) => (
+                // eslint-disable-next-line react/no-array-index-key
+                (0, jsx_runtime_1.jsx)("li", { children: (0, jsx_runtime_1.jsx)("img", { src: image.url, alt: image.alt }) }, gridIndex))) }) }));
+    }
     const current = images[index] ?? images[0];
     return ((0, jsx_runtime_1.jsxs)("section", { "data-block": "gallery", onMouseEnter: () => setHovered(true), onMouseLeave: () => setHovered(false), onFocus: () => setFocused(true), onBlur: () => setFocused(false), children: [(0, jsx_runtime_1.jsxs)("div", { "data-slot": "frame", children: [current ? (0, jsx_runtime_1.jsx)("img", { src: current.url, alt: current.alt }) : null, count > 1 ? ((0, jsx_runtime_1.jsx)("button", { type: "button", "data-slot": "play-toggle", "aria-label": playing ? "Pause slideshow" : "Play slideshow", "aria-pressed": playing, onClick: () => setPlaying((value) => !value), children: playing ? "Pause" : "Play" })) : null] }), count > 1 ? ((0, jsx_runtime_1.jsx)("div", { "data-slot": "dots", role: "tablist", "aria-label": "Slides", children: images.map((image, dotIndex) => ((0, jsx_runtime_1.jsx)("button", { type: "button", role: "tab", "aria-selected": dotIndex === index, "aria-label": `Show image ${dotIndex + 1} of ${count}`, "data-active": dotIndex === index ? "true" : "false", onClick: () => setIndex(dotIndex) }, dotIndex))) })) : null] }));
 }

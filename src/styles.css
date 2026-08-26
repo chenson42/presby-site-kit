@@ -593,12 +593,55 @@
   }
 }
 
+/* Image-top beige person cards -- overrides the shared grid/card rules
+ * above rather than composing with them, because staff-list has two
+ * requirements the shared rule can't satisfy at once:
+ *
+ * 1. `auto-fill`, not `auto-fit`. `auto-fit` COLLAPSES empty tracks, so a
+ *    committee with a single member stretches that one card to fill the
+ *    entire row width -- inconsistent with every multi-person committee's
+ *    cards on the same page. `auto-fill` keeps the ghost (empty) tracks,
+ *    so every card stays the SAME size regardless of how many people are
+ *    in a given committee.
+ * 2. A uniform photo crop. Source headshots vary in aspect ratio; without
+ *    a fixed `aspect-ratio` + `object-fit: cover`, differently-shaped
+ *    source photos would leave differently-sized image areas across
+ *    cards on the same page, which reads as sloppy even though every
+ *    individual crop is technically "correct." 5:7 is the reference
+ *    site's own portrait-crop ratio.
+ */
+.presby-site [data-block="staff-list"] ul {
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+}
+
+.presby-site [data-block="staff-list"] li {
+  background: #f5f0e8;
+  border: none;
+  padding: 0;
+  overflow: hidden;
+}
+
 .presby-site [data-block="staff-list"] li img {
-  width: 4rem;
-  height: 4rem;
-  border-radius: 999px;
+  width: 100%;
+  aspect-ratio: 5 / 7;
   object-fit: cover;
-  margin-bottom: 0.75rem;
+  border-radius: 0;
+  margin: 0 0 1rem;
+}
+
+.presby-site [data-block="staff-list"] li h3,
+.presby-site [data-block="staff-list"] li p,
+.presby-site [data-block="staff-list"] li a {
+  margin-left: 1.25rem;
+  margin-right: 1.25rem;
+}
+
+.presby-site [data-block="staff-list"] li h3 {
+  margin-top: 0;
+}
+
+.presby-site [data-block="staff-list"] li a:last-child {
+  margin-bottom: 1.25rem;
 }
 
 /* feature-grid/values-grid/ministry-list cards' own optional per-item
@@ -707,6 +750,23 @@
  * toggle is always rendered (never CSS-hidden) -- it's the accessible
  * escape hatch from auto-advancing content, not decoration.
  * ------------------------------------------------------------------- */
+
+/* Grid variant -- a static side-by-side row, no rotation. */
+.presby-site [data-block="gallery"][data-variant="grid"] ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1.25rem;
+}
+
+.presby-site [data-block="gallery"][data-variant="grid"] li img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--site-image-radius);
+}
 
 .presby-site [data-block="gallery"] [data-slot="frame"] {
   position: relative;

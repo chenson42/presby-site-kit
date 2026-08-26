@@ -14,6 +14,15 @@ export interface GalleryProps {
   /** Milliseconds between auto-advances. Defaults to 5000, matching the
    * reference site's own carousels (4000–5000ms across its instances). */
   intervalMs?: number;
+  /**
+   * `"carousel"` (default): the auto-playing one-at-a-time slideshow below.
+   * `"grid"`: a static side-by-side image row — several reference sections
+   * (e.g. the mobility-assistance program's equipment photos) show multiple
+   * images at once with no rotation; forcing those through the carousel
+   * would hide all but one image behind an auto-advancing timer nobody
+   * asked for.
+   */
+  variant?: "carousel" | "grid";
 }
 
 /**
@@ -34,6 +43,7 @@ export interface GalleryProps {
 export function Gallery({
   images,
   intervalMs = 5000,
+  variant = "carousel",
 }: GalleryProps): ReactElement | null {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(true);
@@ -64,6 +74,27 @@ export function Gallery({
   }, [advancing, count, intervalMs]);
 
   if (count === 0) return null;
+
+  // After ALL hooks above (Rules of Hooks) -- the grid variant is a plain
+  // static row with no carousel state of its own. A conditional return
+  // ABOVE the hooks would change the hook call count between renders the
+  // moment `variant` differs, which is exactly the bug this ordering
+  // avoids.
+  if (variant === "grid") {
+    return (
+      <section data-block="gallery" data-variant="grid">
+        <ul>
+          {images.map((image, gridIndex) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <li key={gridIndex}>
+              <img src={image.url} alt={image.alt} />
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
+
   const current = images[index] ?? images[0];
 
   return (

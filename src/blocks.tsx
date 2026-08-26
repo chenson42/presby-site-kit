@@ -263,7 +263,8 @@ function renderGalleryBlock(
   const images = asGalleryImages(props.images, ctx);
   if (images.length === 0) return null;
   const intervalMs = typeof props.intervalMs === "number" ? props.intervalMs : undefined;
-  return <Gallery images={images} intervalMs={intervalMs} />;
+  const variant = props.variant === "grid" ? "grid" : "carousel";
+  return <Gallery images={images} intervalMs={intervalMs} variant={variant} />;
 }
 
 function asEvents(value: unknown, ctx: BlockRenderContext): EventListEvent[] {

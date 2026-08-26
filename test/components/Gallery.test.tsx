@@ -115,4 +115,23 @@ describe("Gallery", () => {
     });
     expect((screen.getByRole("img") as HTMLImageElement).src).toBe(IMAGES[0]!.url);
   });
+
+  it('variant="grid" renders every image at once, statically, with no play/pause or dots', () => {
+    render(<Gallery images={IMAGES} variant="grid" />);
+    const imgs = screen.getAllByRole("img") as HTMLImageElement[];
+    expect(imgs.map((img) => img.src)).toEqual(IMAGES.map((image) => image.url));
+    expect(screen.queryByRole("button", { name: /slideshow/i })).toBeNull();
+    expect(screen.queryByRole("tablist")).toBeNull();
+  });
+
+  it('variant="grid" never advances even with fake timers running, because it holds no carousel state', () => {
+    vi.useFakeTimers();
+    render(<Gallery images={IMAGES} variant="grid" intervalMs={100} />);
+    act(() => {
+      vi.advanceTimersByTime(10_000);
+    });
+    // Still every image, still in original order -- nothing rotated away.
+    const imgs = screen.getAllByRole("img") as HTMLImageElement[];
+    expect(imgs).toHaveLength(3);
+  });
 });
