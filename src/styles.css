@@ -788,10 +788,24 @@
  * that squashes a real portrait photo. Capped so a very tall image still
  * fits the section reasonably. */
 .presby-site [data-block="callout"] [data-slot="image"] {
-  width: 100%;
+  /* NOT width:100% -- that forces every photo, regardless of its own
+   * natural aspect ratio, into one fixed landscape-shaped box. A square
+   * source photo (confirmed: the reference's own real "Need medical
+   * equipment?" image is a genuine 322x322 square, rendered at its own
+   * natural size in a 400px column, not stretched) then needed
+   * object-fit:contain to avoid distortion, which pillarboxed ~110px of
+   * transparent gutter on each side -- and because that gutter is
+   * transparent, it just showed the section's own background color
+   * bleeding through, with no visual boundary for border-radius to ever
+   * curve against. The radius was genuinely being applied the whole time;
+   * it was only ever invisible. max-width (not width) plus intrinsic
+   * `auto` sizing lets the browser size each photo at its own real aspect
+   * ratio, capped only so an unusually large source image doesn't blow out
+   * the layout -- exactly what the reference does. */
+  max-width: 100%;
+  width: auto;
   height: auto;
   max-height: 24rem;
-  object-fit: contain;
   /* Was entirely missing -- the reference's own callout image (both the
    * plain split layout AND the full-bleed inset band) is consistently
    * rounded at the site's own image radius; confirmed on two structurally
@@ -817,6 +831,11 @@
    * band's true edge (confirmed locally: image x === section x, 0 gap).
    * The reference's own image isn't edge-to-edge either at this variant. */
   padding-inline: max(var(--site-gutter), calc((100% - var(--site-max-width)) / 2 + var(--site-gutter)));
+  /* padding-block was missing entirely -- the image sat flush against the
+   * band's own top AND bottom edge (0px gap measured locally both sides).
+   * The reference's real section uses padding: 60px 0 (measured via
+   * getComputedStyle on the actual live band), not just horizontal gutter. */
+  padding-block: 3.75rem;
 }
 
 .presby-site [data-block="callout"] [data-slot="content"] {
