@@ -18,11 +18,42 @@
 
 .presby-site {
   --site-gap: 3rem;
-  --site-max-width: 72rem;
+  /* 1374px / 20px -- the reference site's own container model. One rule
+   * replicates both of its regimes: full-width with a fixed side gutter
+   * under ~1410px, and a centered, capped column above it. */
+  --site-max-width: 85.875rem;
+  --site-gutter: 1.25rem;
+  --site-content-width: min(
+    100% - (var(--site-gutter) * 2),
+    var(--site-max-width)
+  );
   --site-radius: var(--radius, 0.5rem);
-  color: var(--foreground);
+  /* Configurable corner-radius tokens -- a site's own visual identity, not
+   * fpcw-specific. Unset falls back to the platform's own --radius. */
+  --site-image-radius: var(--site-radius);
+  --site-button-radius: 9999px;
+  /* The reference's own neutral body-ink color -- independent of brand,
+   * the same way its own design never let a congregation's accent color
+   * bleed into plain paragraph text. */
+  --site-ink: #293948;
+  color: var(--site-ink);
   background: var(--background);
   line-height: 1.6;
+}
+
+.presby-site h1 {
+  font-weight: 800;
+}
+.presby-site h2,
+.presby-site h3,
+.presby-site h6 {
+  font-weight: 600;
+}
+.presby-site h4 {
+  font-weight: 700;
+}
+.presby-site h5 {
+  font-weight: 400;
 }
 
 .presby-site img {
@@ -40,64 +71,203 @@
  * ------------------------------------------------------------------- */
 
 .presby-site [data-block="nav"] {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--background);
   border-bottom: 1px solid var(--border);
   margin-bottom: var(--site-gap);
+  transition: transform 0.25s ease;
+}
+
+.presby-site [data-block="nav"][data-hidden="true"] {
+  transform: translateY(-100%);
+}
+
+.presby-site [data-block="nav"] [data-slot="bar"] {
+  max-width: var(--site-content-width);
+  margin: 0 auto;
+  padding: 1.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 6.25rem; /* 100px */
+}
+
+@media (min-width: 768px) {
+  .presby-site [data-block="nav"] [data-slot="bar"] {
+    min-height: 7.5rem; /* 120px */
+  }
+}
+
+.presby-site [data-block="nav"] [data-slot="logo"] {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.presby-site [data-block="nav"] [data-slot="logo"] img {
+  height: 3.875rem; /* ~62px */
+  width: auto;
+}
+
+.presby-site [data-block="nav"] [data-slot="logo-text"] {
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: var(--site-ink);
+}
+
+.presby-site [data-block="nav"] [data-slot="menu-region"] {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.presby-site [data-block="nav"] [data-slot="promo"] {
+  display: none;
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+@media (min-width: 70.625rem) {
+  /* 1130px */
+  .presby-site [data-block="nav"] [data-slot="promo"] {
+    display: block;
+  }
 }
 
 .presby-site [data-block="nav"] ul {
-  max-width: var(--site-max-width);
-  margin: 0 auto;
-  padding: 1rem 1.5rem;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1.75rem;
+  margin: 0;
+  padding: 0;
   list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 1.75rem;
 }
 
-.presby-site [data-block="nav"] a {
-  color: var(--foreground);
+.presby-site [data-block="nav"] ul > li {
+  position: relative;
+}
+
+.presby-site [data-block="nav"] ul > li > a,
+.presby-site [data-block="nav"] ul > li > details > summary {
+  color: var(--site-ink);
   text-decoration: none;
-  font-weight: 500;
-  font-size: 0.95rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  list-style: none;
   padding: 0.35rem 0;
-  border-bottom: 2px solid transparent;
+  position: relative;
 }
 
-.presby-site [data-block="nav"] a:hover {
-  color: var(--primary);
-}
-
-.presby-site [data-block="nav"] a[aria-current="page"] {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-}
-
-.presby-site [data-block="nav"] li[data-slot="portal-login"] {
-  margin-left: auto;
-}
-
-.presby-site [data-block="nav"] li[data-slot="portal-login"] a {
-  color: var(--primary-foreground);
-  background: var(--primary);
-  padding: 0.45rem 1rem;
-  border-radius: var(--site-radius);
-  border-bottom: none;
-}
-
-.presby-site [data-block="nav"] li[data-slot="portal-login"] a:hover {
-  opacity: 0.9;
-}
-
-/* The hamburger toggle: a real <button>, hidden outside the narrow-viewport
- * breakpoint below. `[data-slot="bar"]` is the row it lives in; the row
- * itself is also hidden at desktop width, since `ul` alone is the nav row
- * there, exactly as before this component gained a toggle. */
-.presby-site [data-block="nav"] [data-slot="bar"] {
+.presby-site [data-block="nav"] ul > li > a::marker,
+.presby-site [data-block="nav"] ul > li > details > summary::-webkit-details-marker {
   display: none;
 }
 
+/* A center-growing underline -- scales from 0 at the midpoint outward on
+ * hover/current, never a static border that's always faintly visible. */
+.presby-site [data-block="nav"] ul > li > a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 3px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.presby-site [data-block="nav"] ul > li > a:hover::after,
+.presby-site [data-block="nav"] ul > li > a[aria-current="page"]::after {
+  transform: scaleX(1);
+}
+
+.presby-site [data-block="nav"] ul > li > a[aria-current="page"] {
+  color: var(--primary);
+}
+
+.presby-site [data-block="nav"] li[data-highlight="true"] > a {
+  text-transform: none;
+  color: var(--primary-foreground);
+  background: var(--primary);
+  padding: 0.6rem 1.5rem;
+  border-radius: var(--site-button-radius);
+}
+
+.presby-site [data-block="nav"] li[data-highlight="true"] > a::after {
+  display: none;
+}
+
+.presby-site [data-block="nav"] li[data-highlight="true"] > a:hover {
+  opacity: 0.9;
+}
+
+/* The dropdown panel: white, no border/radius, a small shadow -- and a
+ * ::before "bridge" that keeps the hover chain alive across the visual
+ * gap between the summary text and the panel below it (without it, the
+ * pointer briefly leaves both elements while crossing the gap and the
+ * dropdown closes before the visitor reaches it). */
+.presby-site [data-block="nav"] details > ul {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 12rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 0;
+  background: #fff;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0;
+}
+
+.presby-site [data-block="nav"] details:not([open]) > ul {
+  display: none;
+}
+
+.presby-site [data-block="nav"] details::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 0.75rem;
+}
+
+.presby-site [data-block="nav"] details > ul > li > a {
+  display: block;
+  text-align: left;
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  white-space: nowrap;
+}
+
+.presby-site [data-block="nav"] details > ul > li > a::after {
+  display: none;
+}
+
+.presby-site [data-block="nav"] details > ul > li > a:hover {
+  background: var(--muted);
+}
+
+.presby-site [data-block="nav"] li[data-slot="portal-login"] > a {
+  text-transform: none;
+}
+
+/* The hamburger toggle -- narrow viewports only. */
 .presby-site [data-block="nav"] button[data-slot="menu-toggle"] {
+  display: none;
   appearance: none;
   background: none;
   border: none;
@@ -105,7 +275,6 @@
   padding: 0.5rem;
   width: 2.75rem;
   height: 2.75rem;
-  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -118,7 +287,7 @@
   width: 1.5rem;
   height: 2px;
   border-radius: 1px;
-  background: var(--foreground);
+  background: var(--site-ink);
 }
 
 /* ---------------------------------------------------------------------
@@ -127,21 +296,20 @@
  * ------------------------------------------------------------------- */
 
 .presby-site > [data-block] {
-  max-width: var(--site-max-width);
+  max-width: var(--site-content-width);
   margin: 0 auto var(--site-gap);
-  padding: 0 1.5rem;
+  padding: 0;
 }
 
 .presby-site > [data-block="hero"],
-.presby-site > [data-block="callout"] {
+.presby-site > [data-block="callout"][data-variant="inset"] {
   max-width: none;
-  padding: 0;
 }
 
 .presby-site h1,
 .presby-site h2,
 .presby-site h3 {
-  line-height: 1.25;
+  line-height: 1.15;
   text-wrap: balance;
 }
 
@@ -149,66 +317,134 @@
  * Hero
  * ------------------------------------------------------------------- */
 
-.presby-site [data-block="hero"] {
+.presby-site [data-block="hero"] [data-slot="frame"] {
   position: relative;
-  padding: 4rem 1.5rem;
-  text-align: center;
-  background: var(--muted);
+  height: 25rem; /* 400px -- sub-page default */
   overflow: hidden;
 }
 
-.presby-site [data-block="hero"] img {
+.presby-site [data-block="hero"][data-variant="carousel"] [data-slot="frame"] {
+  height: 45.875rem; /* 734px -- the home-page carousel */
+}
+
+.presby-site [data-block="hero"] [data-slot="frame"] img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  opacity: 0.28;
-  z-index: 0;
 }
 
-.presby-site [data-block="hero"] > :not(img) {
-  position: relative;
+/* The scrim: its OWN layer, stacked ABOVE the image but BELOW the
+ * content -- getting this ordering backwards (a ::before with a lower
+ * z-index than the img, or painted before it in DOM order with no
+ * z-index at all) makes the gradient paint invisibly underneath the
+ * photo, a bug that only shows up in a real screenshot. */
+.presby-site [data-block="hero"] [data-slot="scrim"] {
+  position: absolute;
+  inset: 0;
   z-index: 1;
-  max-width: 42rem;
-  margin-left: auto;
-  margin-right: auto;
+  mix-blend-mode: multiply;
+  background: linear-gradient(
+    to top,
+    rgba(41, 57, 72, 0.8) 0%,
+    rgba(41, 57, 72, 0.8) 18.14%,
+    rgba(0, 0, 0, 0) 66.21%
+  );
+}
+
+.presby-site [data-block="hero"] [data-slot="content"] {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.875rem var(--site-gutter); /* 30px */
+  max-width: var(--site-content-width);
+  margin: 0 auto;
+  color: #fff;
+}
+
+.presby-site [data-block="hero"][data-variant="carousel"] [data-slot="content"] {
+  padding: 5.625rem var(--site-gutter); /* 90px top, 50px handled by justify-end below */
+  padding-bottom: 3.125rem;
 }
 
 .presby-site [data-block="hero"] [data-slot="eyebrow"] {
   font-weight: 600;
-  color: var(--primary);
   margin: 0 0 0.5rem;
 }
 
 .presby-site [data-block="hero"] h1 {
-  font-size: clamp(2rem, 5vw, 3rem);
+  font-size: 5rem; /* 80px */
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.05;
   margin: 0 0 0.75rem;
+  color: #fff;
 }
 
-.presby-site [data-block="hero"] [data-slot="tagline"] {
-  font-size: 1.25rem;
-  color: var(--muted-foreground);
-  margin: 0 0 1rem;
+@media (max-width: 48rem) {
+  .presby-site [data-block="hero"] h1 {
+    font-size: clamp(2rem, 9vw, 3.5rem);
+  }
 }
 
 .presby-site [data-block="hero"] [data-slot="body"] {
-  color: var(--foreground);
   margin: 0 0 1.5rem;
+  max-width: 42rem;
 }
 
-.presby-site [data-block="hero"] > a {
+.presby-site [data-block="hero"] [data-slot="content"] > a {
+  align-self: flex-start;
   display: inline-block;
   background: var(--primary);
   color: var(--primary-foreground);
   padding: 0.65rem 1.5rem;
-  border-radius: var(--site-radius);
+  border-radius: var(--site-button-radius);
   font-weight: 600;
   text-decoration: none;
 }
 
-.presby-site [data-block="hero"] > a:hover {
+.presby-site [data-block="hero"] [data-slot="content"] > a:hover {
   opacity: 0.9;
+}
+
+/* The tagline lives BELOW the hero band entirely, bottom-left aligned
+ * within its own padding -- never overlaid on the image on a sub-page. */
+.presby-site [data-block="hero"] [data-slot="tagline"] {
+  max-width: var(--site-content-width);
+  margin: 1rem auto 0;
+  padding: 0 var(--site-gutter);
+  font-size: 1.25rem;
+  color: var(--muted-foreground);
+  text-align: left;
+}
+
+.presby-site [data-block="hero"] [data-slot="dots"] {
+  position: absolute;
+  z-index: 2;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.5rem;
+}
+
+.presby-site [data-block="hero"] [data-slot="dots"] button {
+  appearance: none;
+  border: 2px solid #fff;
+  background: transparent;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+}
+
+.presby-site [data-block="hero"] [data-slot="dots"] button[data-active="true"] {
+  background: #fff;
 }
 
 /* ---------------------------------------------------------------------
@@ -268,6 +504,95 @@
   border-color: var(--primary);
 }
 
+/* The "solid" variant: a full-bleed color tile. Title+body anchor to the
+ * TOP of the card; the arrow renders ALONE at the bottom via
+ * margin-top: auto on its own slot -- getting this reversed (the whole
+ * block bottom-anchored via justify-content: flex-end) was this
+ * package's own most recently fixed bug. */
+.presby-site [data-block="feature-grid"][data-variant="solid"] li {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--site-image-radius);
+  position: relative;
+  min-height: 25.75rem; /* 412px */
+  overflow: hidden;
+  padding: 0;
+}
+
+.presby-site [data-block="feature-grid"][data-variant="solid"] li a {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 2rem;
+}
+
+.presby-site [data-block="feature-grid"][data-variant="solid"] li img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  margin: 0;
+}
+
+.presby-site [data-block="feature-grid"][data-variant="solid"] li [data-slot="content"] {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.presby-site [data-block="feature-grid"][data-variant="solid"] li h2 {
+  color: #fff;
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+.presby-site [data-block="feature-grid"][data-variant="solid"] li p {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.presby-site [data-block="feature-grid"][data-variant="solid"] li [data-slot="arrow"] {
+  display: block;
+  width: 1.25rem;
+  height: 1rem;
+  margin-top: auto;
+  position: relative;
+}
+
+.presby-site [data-block="feature-grid"][data-variant="solid"] li [data-slot="arrow"]::before,
+.presby-site [data-block="feature-grid"][data-variant="solid"] li [data-slot="arrow"]::after {
+  content: "";
+  position: absolute;
+  background: #fff;
+}
+
+.presby-site [data-block="feature-grid"][data-variant="solid"] li [data-slot="arrow"]::before {
+  top: 45%;
+  left: 0;
+  width: 100%;
+  height: 2px;
+}
+
+.presby-site [data-block="feature-grid"][data-variant="solid"] li [data-slot="arrow"]::after {
+  top: 0;
+  right: 0;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-top: 2px solid #fff;
+  border-right: 2px solid #fff;
+  background: transparent;
+  transform: rotate(45deg);
+}
+
+.presby-site [data-block="feature-grid"][data-variant="solid"] li:hover {
+  filter: brightness(1.05);
+}
+
+@media (max-width: 640px) {
+  .presby-site [data-block="feature-grid"][data-variant="solid"] li {
+    min-height: 0;
+  }
+}
+
 .presby-site [data-block="staff-list"] li img {
   width: 4rem;
   height: 4rem;
@@ -319,24 +644,41 @@
 .presby-site [data-block="callout"] {
   display: grid;
   grid-template-columns: 1fr;
+  align-items: center;
+  gap: 2rem;
   background: var(--secondary);
   color: var(--secondary-foreground);
 }
 
-.presby-site [data-block="callout"]:has(img) {
+.presby-site [data-block="callout"]:has([data-slot="image"]) {
   grid-template-columns: 1fr 1fr;
-  align-items: stretch;
 }
 
-.presby-site [data-block="callout"] img {
+/* imageSide="right" flips column order on BOTH variants -- the reference
+ * alternates this per section. */
+.presby-site [data-block="callout"][data-image-side="right"] [data-slot="image"] {
+  order: 2;
+}
+
+/* Natural aspect ratio, never a forced full-bleed square/cover crop --
+ * that squashes a real portrait photo. Capped so a very tall image still
+ * fits the section reasonably. */
+.presby-site [data-block="callout"] [data-slot="image"] {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  min-height: 14rem;
+  height: auto;
+  max-height: 24rem;
+  object-fit: contain;
+}
+
+.presby-site [data-block="callout"][data-variant="inset"] {
+  background: var(--site-callout-bg, var(--secondary));
+}
+
+.presby-site [data-block="callout"][data-variant="inset"] [data-slot="content"] {
+  padding-inline: max(var(--site-gutter), calc((100% - var(--site-max-width)) / 2 + var(--site-gutter)));
 }
 
 .presby-site [data-block="callout"] [data-slot="content"] {
-  align-self: center;
   padding: 2.5rem 1.5rem;
 }
 
@@ -344,7 +686,7 @@
   margin: 0 0 0.5rem;
 }
 
-.presby-site [data-block="callout"] p {
+.presby-site [data-block="callout"] [data-slot="body"] p {
   margin: 0 0 1.25rem;
   color: inherit;
   opacity: 0.85;
@@ -355,7 +697,7 @@
   background: var(--primary);
   color: var(--primary-foreground);
   padding: 0.6rem 1.25rem;
-  border-radius: var(--site-radius);
+  border-radius: var(--site-button-radius);
   font-weight: 600;
   text-decoration: none;
 }
@@ -501,23 +843,126 @@
  * ------------------------------------------------------------------- */
 
 .presby-site [data-block="footer"] {
+  --site-footer-bg: #1c2b3a;
+  --site-footer-fg: #fff;
+  --site-footer-muted: rgba(255, 255, 255, 0.7);
+  --site-footer-border: rgba(255, 255, 255, 0.15);
   margin-top: calc(var(--site-gap) * 1.5);
-  padding: 2.5rem 1.5rem;
-  background: var(--muted);
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2rem 3rem;
+  background: var(--site-footer-bg);
+  color: var(--site-footer-fg);
 }
 
-.presby-site [data-block="footer"] > * {
-  color: var(--muted-foreground);
-  font-size: 0.9rem;
+.presby-site [data-block="footer"] [data-slot="footer-main"] {
+  max-width: var(--site-content-width);
+  margin: 0 auto;
+  padding: 3.5rem var(--site-gutter) 2.5rem;
+  display: grid;
+  grid-template-columns: 1.2fr repeat(3, 1fr);
+  gap: 2.5rem;
 }
 
-.presby-site [data-block="footer"] [data-slot="address"] p {
+.presby-site [data-block="footer"] [data-slot="footer-left"] [data-slot="footer-logo"] {
+  height: 3rem;
+  width: auto;
+  margin-bottom: 1.25rem;
+}
+
+.presby-site [data-block="footer"] [data-slot="footer-logo-text"] {
+  font-weight: 800;
+  font-size: 1.15rem;
+  margin: 0 0 1.25rem;
+}
+
+.presby-site [data-block="footer"] [data-slot="address"],
+.presby-site [data-block="footer"] [data-slot="phone"] {
+  margin: 0 0 0.25rem;
+  color: var(--site-footer-fg);
+}
+
+.presby-site [data-block="footer"] [data-slot="phone"] a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.presby-site [data-block="footer"] [data-slot="schedules"] {
+  margin-top: 1rem;
+}
+
+.presby-site [data-block="footer"] [data-slot="schedules"] p {
   margin: 0 0 0.35rem;
-  color: var(--foreground);
+  font-size: 0.9rem;
+  color: var(--site-footer-muted);
+}
+
+.presby-site [data-block="footer"] [data-slot="schedule-label"] {
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--site-footer-fg);
+}
+
+.presby-site [data-block="footer"] [data-slot="directions-button"] {
+  display: inline-block;
+  margin-top: 1.25rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  text-transform: uppercase;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.03em;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--site-button-radius);
+  text-decoration: none;
+}
+
+.presby-site [data-block="footer"] [data-slot="footer-nav-groups"] {
+  display: contents;
+}
+
+.presby-site [data-block="footer"] [data-slot="footer-nav-groups"] > div h2 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--site-footer-border);
+  color: var(--site-footer-fg);
+}
+
+.presby-site [data-block="footer"] [data-slot="footer-nav-groups"] ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.presby-site [data-block="footer"] [data-slot="footer-nav-groups"] a {
+  color: var(--site-footer-muted);
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.presby-site [data-block="footer"] [data-slot="footer-nav-groups"] a:hover {
+  color: var(--site-footer-fg);
+}
+
+.presby-site [data-block="footer"] [data-slot="footer-bottom"] {
+  border-top: 1px solid var(--site-footer-border);
+  max-width: var(--site-content-width);
+  margin: 0 auto;
+  padding: 1.25rem var(--site-gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.presby-site [data-block="footer"] [data-slot="footer-bottom"] p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--site-footer-muted);
 }
 
 .presby-site [data-block="footer"] [data-slot="social-links"] ul {
@@ -525,7 +970,36 @@
   margin: 0;
   padding: 0;
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
+}
+
+.presby-site [data-block="footer"] [data-slot="social-links"] a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--site-footer-fg);
+}
+
+.presby-site [data-block="footer"] [data-slot="social-links"] svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  fill: currentColor;
+}
+
+.presby-site .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ---------------------------------------------------------------------
@@ -535,68 +1009,79 @@
  * ------------------------------------------------------------------- */
 
 @media (max-width: 640px) {
-  .presby-site [data-block="nav"] [data-slot="bar"] {
+  .presby-site [data-block="nav"] button[data-slot="menu-toggle"] {
     display: flex;
-    justify-content: flex-end;
-    padding: 0.5rem 1rem 0;
+  }
+
+  .presby-site [data-block="nav"] [data-slot="promo"] {
+    display: none;
   }
 
   .presby-site [data-block="nav"] ul {
-    padding: 0.75rem 1rem 1rem;
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(20rem, 85vw);
+    padding: 5rem 1.5rem 2rem;
+    background: var(--background);
+    box-shadow: -2px 0 12px rgba(0, 0, 0, 0.15);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+    overflow-y: auto;
   }
 
   .presby-site [data-block="nav"] ul[data-open="false"] {
     display: none;
   }
 
-  .presby-site [data-block="nav"] ul[data-open="true"] {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.25rem;
-  }
-
-  .presby-site [data-block="nav"] a {
-    padding: 0.6rem 0;
+  .presby-site [data-block="nav"] details > ul {
+    position: static;
+    box-shadow: none;
+    margin-top: 0;
+    padding-left: 1rem;
   }
 
   .presby-site [data-block="nav"] li[data-slot="portal-login"] {
-    margin-left: 0;
-    width: 100%;
-    order: 99;
     margin-top: 0.5rem;
   }
 
-  .presby-site [data-block="nav"] li[data-slot="portal-login"] a {
-    display: block;
-    text-align: center;
-    padding: 0.6rem 1rem;
-  }
-
   .presby-site > [data-block] {
-    padding: 0 1rem;
+    padding: 0;
   }
 
-  .presby-site [data-block="hero"] {
-    padding: 3rem 1.25rem;
+  .presby-site [data-block="hero"] [data-slot="frame"],
+  .presby-site [data-block="hero"][data-variant="carousel"] [data-slot="frame"] {
+    height: 20rem;
   }
 
-  .presby-site [data-block="callout"]:has(img) {
+  .presby-site [data-block="callout"]:has([data-slot="image"]) {
     grid-template-columns: 1fr;
   }
 
-  .presby-site [data-block="callout"] img {
-    min-height: 12rem;
+  .presby-site [data-block="callout"][data-image-side="right"] [data-slot="image"] {
+    order: 0;
   }
 
   .presby-site [data-block="callout"] [data-slot="content"] {
     padding: 2rem 1.25rem;
   }
 
-  .presby-site [data-block="footer"] {
-    flex-direction: column;
+  .presby-site [data-block="footer"] [data-slot="footer-main"] {
+    grid-template-columns: 1fr;
+    padding: 2.5rem 1.25rem 1.5rem;
+  }
+
+  .presby-site [data-block="footer"] [data-slot="footer-nav-groups"] {
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 1.5rem;
-    padding: 2rem 1.25rem;
+  }
+
+  .presby-site [data-block="footer"] [data-slot="footer-bottom"] {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1.25rem;
   }
 
   .presby-site [data-block="gallery"] [data-slot="frame"] img {
