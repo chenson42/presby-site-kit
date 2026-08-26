@@ -27,23 +27,31 @@ function asHeroSlides(value, ctx) {
     return (0, utils_1.asArray)(value).flatMap((raw) => {
         if (!(0, utils_1.isRecord)(raw))
             return [];
-        const imageKey = (0, utils_1.asNonEmptyString)(raw.image);
+        const imageKey = (0, utils_1.asNonEmptyString)(raw.image ?? raw.imageUrl);
         if (imageKey === null)
             return [];
         return [
             {
                 imageUrl: ctx.imageUrl(imageKey),
                 imageAlt: (0, utils_1.asNonEmptyString)(raw.imageAlt) ?? "",
+                eyebrow: (0, utils_1.asNonEmptyString)(raw.eyebrow) ?? undefined,
+                heading: (0, utils_1.asNonEmptyString)(raw.heading) ?? undefined,
             },
         ];
     });
 }
 function renderHeroBlock(props, ctx) {
-    const heading = (0, utils_1.asNonEmptyString)(props.heading);
+    const slides = asHeroSlides(props.slides, ctx);
+    // A per-slide carousel (the reference's own home-page hero) carries its
+    // own heading per slide and never repeats it at the block's top level --
+    // only the single-image sub-page hero requires one there. Valid iff
+    // EITHER exists; heroProps.heading (required by the component) falls
+    // back to the first slide's own heading when the top-level is unset.
+    const topHeading = (0, utils_1.asNonEmptyString)(props.heading);
+    const heading = topHeading ?? slides[0]?.heading ?? null;
     if (heading === null)
         return null;
     const imageKey = (0, utils_1.asNonEmptyString)(props.image);
-    const slides = asHeroSlides(props.slides, ctx);
     const heroProps = {
         heading,
         eyebrow: (0, utils_1.asNonEmptyString)(props.eyebrow) ?? undefined,

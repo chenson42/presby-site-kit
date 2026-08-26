@@ -2,6 +2,14 @@ import { type ReactElement } from "react";
 export interface HeroSlide {
     imageUrl: string;
     imageAlt: string;
+    /** Per-slide text, matching the reference's own carousel -- each of its
+     * three home-page slides carries distinct copy ("We're so glad you're
+     * here." / "Community since 1829" / "Energetic. Supportive. Open."), not
+     * one static heading over a rotating background. Unset on a slide falls
+     * back to the hero's own top-level `eyebrow`/`heading` -- the sub-page,
+     * single-image case never needs to repeat itself per slide. */
+    eyebrow?: string;
+    heading?: string;
 }
 export interface HeroProps {
     eyebrow?: string;

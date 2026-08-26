@@ -5,6 +5,14 @@ import { useEffect, useRef, useState, type ReactElement } from "react";
 export interface HeroSlide {
   imageUrl: string;
   imageAlt: string;
+  /** Per-slide text, matching the reference's own carousel -- each of its
+   * three home-page slides carries distinct copy ("We're so glad you're
+   * here." / "Community since 1829" / "Energetic. Supportive. Open."), not
+   * one static heading over a rotating background. Unset on a slide falls
+   * back to the hero's own top-level `eyebrow`/`heading` -- the sub-page,
+   * single-image case never needs to repeat itself per slide. */
+  eyebrow?: string;
+  heading?: string;
 }
 
 export interface HeroProps {
@@ -79,6 +87,8 @@ export function Hero({
   }, [advancing, images.length]);
 
   const current = images[index] ?? images[0];
+  const currentEyebrow = current?.eyebrow ?? eyebrow;
+  const currentHeading = current?.heading ?? heading;
 
   return (
     <section data-block="hero" data-variant={variant}>
@@ -86,8 +96,8 @@ export function Hero({
         {current ? <img src={current.imageUrl} alt={current.imageAlt} /> : null}
         <div data-slot="scrim" aria-hidden="true" />
         <div data-slot="content">
-          {eyebrow ? <p data-slot="eyebrow">{eyebrow}</p> : null}
-          <h1 className={headingClassName}>{heading}</h1>
+          {currentEyebrow ? <p data-slot="eyebrow">{currentEyebrow}</p> : null}
+          <h1 className={headingClassName}>{currentHeading}</h1>
           {body ? <p data-slot="body">{body}</p> : null}
           {cta ? <a href={cta.href}>{cta.label}</a> : null}
         </div>

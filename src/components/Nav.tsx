@@ -84,6 +84,13 @@ export function Nav({
   }, []);
 
   const { top, groups } = groupEntries(entries);
+  // A `highlight` entry (the reference's own "Give" pill button) is a
+  // call-to-action, not a peer of the regular top-level links -- the
+  // reference always renders it LAST, after every dropdown group, however
+  // its own navOrder sorts among the flat entry list. An ordinary
+  // (non-highlight) ungrouped entry keeps rendering before the groups.
+  const topLeading = top.filter((entry) => !entry.highlight);
+  const topTrailing = top.filter((entry) => entry.highlight);
   const showPageLinks = entries.length >= 2;
   if (!showPageLinks && !portalUrl && !logoUrl) return null;
 
@@ -117,8 +124,8 @@ export function Nav({
           ) : null}
 
           <ul id="site-nav-menu" data-open={mobileOpen ? "true" : "false"}>
-            {top.map((entry) => (
-              <li key={entry.path} data-highlight={entry.highlight ? "true" : "false"}>
+            {topLeading.map((entry) => (
+              <li key={entry.path} data-highlight="false">
                 <a
                   href={entry.href}
                   aria-current={entry.path === currentPath ? "page" : undefined}
@@ -168,6 +175,18 @@ export function Nav({
                     ))}
                   </ul>
                 </details>
+              </li>
+            ))}
+
+            {topTrailing.map((entry) => (
+              <li key={entry.path} data-highlight="true">
+                <a
+                  href={entry.href}
+                  aria-current={entry.path === currentPath ? "page" : undefined}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {entry.label}
+                </a>
               </li>
             ))}
 

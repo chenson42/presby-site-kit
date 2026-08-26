@@ -91,6 +91,23 @@ describe("Nav — page links", () => {
       "https://give.example.invalid",
     );
   });
+
+  it("renders a highlighted entry LAST -- after every dropdown group -- however its own navOrder sorts it in the flat entry list", () => {
+    // The reference's own "Give" pill button always trails VISIT/CONNECT/
+    // SERVE visually, even though GIVE carries the highest navOrder (a
+    // flat-list sort position that, before this fix, rendered it FIRST
+    // because Nav split entries into "top" vs "groups" as two independent
+    // sequential blocks rather than respecting where a highlighted CTA
+    // belongs relative to the groups).
+    render(
+      <Nav entries={[GIVE, WORSHIP, MUSIC]} currentPath="/" portalUrl={null} {...baseProps} />,
+    );
+    const items = screen.getAllByRole("listitem");
+    const labels = items.map((li) => li.textContent);
+    const giveIndex = labels.findIndex((t) => t?.includes("Give"));
+    const groupIndex = labels.findIndex((t) => t?.includes("Visit"));
+    expect(giveIndex).toBeGreaterThan(groupIndex);
+  });
 });
 
 describe("Nav — dropdown groups", () => {
