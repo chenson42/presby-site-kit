@@ -1,7 +1,8 @@
 import type { ReactElement } from "react";
 import type { RenderSiteBundleProfile, ScheduleEntry } from "../types";
 import { dayName, formatClockTime, mapsSearchUrl, sanitizeHref } from "../utils";
-import { groupEntries, type NavEntry } from "./Nav";
+import type { NavEntry } from "./Nav";
+import { groupEntries } from "../nav-grouping";
 
 export interface FooterProps {
   /** `null` renders nothing at all -- same null-safe-by-construction

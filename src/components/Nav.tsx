@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactElement } from "react";
+import { groupEntries } from "../nav-grouping";
 
 export interface NavEntry {
   path: string;
@@ -34,31 +35,7 @@ export interface NavProps {
   promoText: string | null;
 }
 
-interface GroupedEntries {
-  group: string;
-  items: NavEntry[];
-}
 
-export function groupEntries(entries: NavEntry[]): { top: NavEntry[]; groups: GroupedEntries[] } {
-  const top: NavEntry[] = [];
-  const groupOrder: string[] = [];
-  const byGroup = new Map<string, NavEntry[]>();
-  for (const entry of entries) {
-    if (entry.group === null) {
-      top.push(entry);
-      continue;
-    }
-    if (!byGroup.has(entry.group)) {
-      byGroup.set(entry.group, []);
-      groupOrder.push(entry.group);
-    }
-    byGroup.get(entry.group)?.push(entry);
-  }
-  return {
-    top,
-    groups: groupOrder.map((group) => ({ group, items: byGroup.get(group) ?? [] })),
-  };
-}
 
 /**
  * Top navigation chrome. Two independently-gated pieces, same discipline as

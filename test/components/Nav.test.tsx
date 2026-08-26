@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Nav, groupEntries, type NavEntry } from "../../src/components/Nav";
+import { Nav, type NavEntry } from "../../src/components/Nav";
+import { groupEntries } from "../../src/nav-grouping";
 import { testPageUrl, testPortalUrl } from "../fixtures";
 
 const HOME: NavEntry = {
