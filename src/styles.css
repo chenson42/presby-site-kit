@@ -563,18 +563,27 @@
   background: #fff;
 }
 
+/* Both pieces are centered on the SAME line (top: 50% + a fixed negative
+ * margin equal to half their own thickness), not independent percentages
+ * (the shaft's old top: 45% vs. the chevron's top: 0) -- those two
+ * references didn't land on the same vertical point, so the chevron sat
+ * ~3px above the shaft's actual center instead of straddling it, reading
+ * as a broken/bent arrow rather than a symmetric ">" (confirmed by a
+ * zoomed pixel comparison against the reference's own arrow icon). */
 .presby-site [data-block="feature-grid"][data-variant="solid"] li [data-slot="arrow"]::before {
-  top: 45%;
+  top: 50%;
   left: 0;
   width: 100%;
   height: 2px;
+  margin-top: -1px;
 }
 
 .presby-site [data-block="feature-grid"][data-variant="solid"] li [data-slot="arrow"]::after {
-  top: 0;
+  top: 50%;
   right: 0;
   width: 0.65rem;
   height: 0.65rem;
+  margin-top: -0.325rem;
   border-top: 2px solid #fff;
   border-right: 2px solid #fff;
   background: transparent;
@@ -602,8 +611,16 @@
  *    individual crop is technically "correct." 5:7 is the reference
  *    site's own portrait-crop ratio.
  */
+/* 24rem, not the shared grid's 15rem: at the site's own content width
+ * (~1240px desktop) with this grid's own 24px gap, even 18rem still lets a
+ * 4th column fit (4*288px + 3*24px = 1224px <= 1240px) -- the reference's
+ * own layout is a fixed 3-up (Bootstrap col-lg-4, confirmed via its own
+ * grid container class, ~393px per column). 24rem forces the same
+ * 3-column count (4*384px + 3*24px = 1608px doesn't fit; 3*384px + 2*24px
+ * = 1200px does) while keeping auto-fill's ghost-track behavior for a
+ * single-member committee. */
 .presby-site [data-block="staff-list"] ul {
-  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
 }
 
 .presby-site [data-block="staff-list"] li {
@@ -617,7 +634,10 @@
   width: 100%;
   aspect-ratio: 5 / 7;
   object-fit: cover;
-  border-radius: var(--site-image-radius);
+  /* The reference's own headshots are square-cornered (border-radius: 0px,
+   * confirmed via computed style) -- unlike every other photo on the site,
+   * this one specific block stays unrounded. */
+  border-radius: 0;
   margin: 0 0 1rem;
 }
 
@@ -708,10 +728,14 @@
 }
 
 .presby-site [data-block="callout"][data-variant="inset"] {
-  /* Matches the reference's own .bg-color-green/.bg-color-teal sections:
-   * any colored full-bleed band gets white text unconditionally, never a
-   * per-heading override -- headingColor is a split-variant-only concept. */
   background: var(--site-callout-bg, var(--secondary));
+  /* Fallback only -- when `background` is an explicit hex, Callout.tsx sets
+   * an inline color computed from that hex's own luminance instead (the
+   * reference's own light-green band needs dark ink, not white; see
+   * Callout.tsx's relativeLuminance for why "always white" was wrong). This
+   * class-level white is what a caller gets when no explicit background was
+   * given at all (falls back to --secondary, an unknown color at build
+   * time). */
   color: #fff;
 }
 
