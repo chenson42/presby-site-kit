@@ -326,6 +326,32 @@
  * Hero
  * ------------------------------------------------------------------- */
 
+/* Every page's hero fades in on load -- the reference's own AOS-driven
+ * .hero-wrapper carries data-aos="fade" with no directional variant (pure
+ * opacity 0 -> 1, no translate), and computed style on the live reference
+ * shows transition-duration: 1s, ease, no delay. A CSS animation (not a
+ * transition, which needs an external state-change trigger) reproduces
+ * this on every mount -- i.e. every page-to-page navigation, matching
+ * "the hero loads via an animation" when moving between pages. */
+@keyframes presby-site-hero-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.presby-site [data-block="hero"] {
+  animation: presby-site-hero-fade-in 1s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .presby-site [data-block="hero"] {
+    animation: none;
+  }
+}
+
 .presby-site [data-block="hero"] [data-slot="frame"] {
   position: relative;
   height: 25rem; /* 400px -- sub-page default */
