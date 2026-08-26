@@ -687,7 +687,15 @@
  * = 1200px does) while keeping auto-fill's ghost-track behavior for a
  * single-member committee. */
 .presby-site [data-block="staff-list"] ul {
-  grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
+  /* min(24rem, 100%), not bare 24rem -- a bare 24rem (384px) floor is
+   * narrower than the whole content width on any viewport under ~424px
+   * (390px minus the site's own 40px of gutter leaves only 350px), so the
+   * track refused to shrink and the leadership page overflowed its own
+   * viewport by 14px on mobile, real and confirmed. min() caps the floor
+   * at the container's own full width when 24rem doesn't fit, which is
+   * exactly what lets auto-fill collapse to one column on a narrow
+   * viewport instead of forcing a column wider than the screen. */
+  grid-template-columns: repeat(auto-fill, minmax(min(24rem, 100%), 1fr));
 }
 
 .presby-site [data-block="staff-list"] li {
@@ -775,7 +783,15 @@
 }
 
 .presby-site [data-block="callout"]:has([data-slot="image"]) {
-  grid-template-columns: 1fr 1fr;
+  /* minmax(0, 1fr), not bare 1fr -- a bare `1fr` track's automatic minimum
+   * size is `auto`, which for a track containing a replaced element (this
+   * image) resolves to the image's OWN intrinsic width, not 0. That let a
+   * large photo force its grid column wider than the available space
+   * instead of shrinking to fit -- real, confirmed regression: a square
+   * 644x644 source image overflowed a 390px mobile viewport by 11px
+   * (max-width:100% on the image alone doesn't help; the grid track itself
+   * refused to shrink below the image's intrinsic size first). */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 }
 
 /* imageSide="right" flips column order on BOTH variants -- the reference
@@ -807,6 +823,7 @@
    * expose the bug. max-width (not width) plus intrinsic `auto` sizing on
    * both axes, no cap, is what actually matches every measured case. */
   max-width: 100%;
+  min-width: 0;
   width: auto;
   height: auto;
   /* Was entirely missing -- the reference's own callout image (both the
@@ -1375,6 +1392,25 @@
     display: flex;
   }
 
+  /* Real, confirmed overflow bug: the text-logo fallback (used whenever an
+   * org has no logo image) rendered on one line at its full natural width
+   * (measured 318px for "First Presbyterian Church of Westerville" on a
+   * 350px-wide bar), pushing the hamburger button 16px past the viewport
+   * edge -- flex-shrink:0 on [data-slot="logo"] refused to let it
+   * compress. The reference's own real mobile header wraps its identical
+   * text logo onto two lines instead (confirmed via a real screenshot at
+   * 390px, zero overflow there) -- letting the logo shrink and wrap,
+   * rather than forcing single-line overflow, is what actually matches. */
+  .presby-site [data-block="nav"] [data-slot="logo"] {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  .presby-site [data-block="nav"] [data-slot="logo-text"] {
+    white-space: normal;
+    line-height: 1.2;
+  }
+
   .presby-site [data-block="nav"] [data-slot="promo"] {
     display: none;
   }
@@ -1417,7 +1453,7 @@
   }
 
   .presby-site [data-block="callout"]:has([data-slot="image"]) {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .presby-site [data-block="callout"][data-image-side="right"] [data-slot="image"] {
@@ -1448,5 +1484,28 @@
 
   .presby-site [data-block="gallery"] [data-slot="frame"] img {
     height: 16rem;
+  }
+
+  /* Real, confirmed overflow: column-count:2/3 (below) never had a mobile
+   * override -- CSS multi-column layout doesn't reflow text across the
+   * whole container, only within each fixed-width column, so a ~151px
+   * column on a 350px content width forced a wide heading's words past
+   * the column edge (measured 200px needed vs 151px available), pushing
+   * mobility-assistance-program's whole page 43px past the viewport.
+   * Every other multi-column/grid block on this site already collapses to
+   * one column below 640px; this one never got the same treatment. */
+  .presby-site [data-block="prose"][data-columns="2"],
+  .presby-site [data-block="prose"][data-columns="3"] {
+    column-count: 1;
+  }
+
+  /* column-count:1 alone was NOT enough -- Chromium still honors a forced
+   * break-after:column on the <hr> divider even when there's only one
+   * column to break into, creating a second implicit column anyway.
+   * Confirmed exactly: 748px scrollWidth === 350px (column) + 48px (gap) +
+   * 350px (the forced second column) to the pixel. No break needed when
+   * there's only one column in the first place. */
+  .presby-site [data-block="prose"][data-columns] hr {
+    break-after: auto;
   }
 }
