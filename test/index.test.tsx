@@ -189,6 +189,48 @@ describe("renderSiteBundle — Nav composition", () => {
     expect(link.getAttribute("href")).toBe(testPortalUrl);
   });
 
+  it("folds the portal link into an existing content-authored group when portalNavGroup+portalLabel are both set, instead of rendering it as its own flat Member Login link", () => {
+    render(
+      <>
+        {renderSiteBundle(
+          baseInput({
+            pages: [homeWithNav],
+            currentPath: "/",
+            portalUrl: testPortalUrl,
+            portalNavGroup: "Connect",
+            portalLabel: "Our Directory",
+          }),
+        )}
+      </>,
+    );
+    // No flat "Member Login" link -- it's folded into the group instead.
+    expect(screen.queryByRole("link", { name: "Member Login" })).toBeNull();
+    expect(screen.getAllByText("Connect").length).toBeGreaterThan(0);
+    // Both Nav's dropdown and Footer's mirrored nav-group column render the
+    // grouped entry -- one real link each, not a Nav-only special case.
+    const links = screen.getAllByRole("link", { name: "Our Directory" });
+    expect(links.length).toBeGreaterThanOrEqual(1);
+    links.forEach((link) => expect(link.getAttribute("href")).toBe(testPortalUrl));
+  });
+
+  it("falls back to the flat Member Login link when portalNavGroup or portalLabel is missing", () => {
+    render(
+      <>
+        {renderSiteBundle(
+          baseInput({
+            pages: [homeWithNav],
+            currentPath: "/",
+            portalUrl: testPortalUrl,
+            portalNavGroup: "Connect",
+            // portalLabel intentionally omitted
+          }),
+        )}
+      </>,
+    );
+    expect(screen.getByRole("link", { name: "Member Login" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Our Directory" })).toBeNull();
+  });
+
   it("omits Nav entirely for a single-page bundle with no portalUrl either", () => {
     render(
       <>{renderSiteBundle(baseInput({ pages: [homePage], currentPath: "/", portalUrl: null }))}</>,

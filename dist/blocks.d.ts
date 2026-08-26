@@ -18,6 +18,10 @@ export interface BlockRenderContext {
     pageUrl: (path: string) => string;
     profile: RenderSiteBundleProfile | null;
     headingClassName?: string;
+    /** The caller's already-built interactive contact-form element — see
+     * RenderSiteBundleInput's own `contactForm` field in ../index.tsx for
+     * the full "this package renders no forms of its own" rationale. */
+    contactForm?: ReactElement;
 }
 type BlockRenderer = (props: Record<string, unknown>, ctx: BlockRenderContext) => ReactElement | null;
 export declare const BLOCK_REGISTRY: Record<string, BlockRenderer>;

@@ -41,6 +41,10 @@ export interface BlockRenderContext {
   pageUrl: (path: string) => string;
   profile: RenderSiteBundleProfile | null;
   headingClassName?: string;
+  /** The caller's already-built interactive contact-form element — see
+   * RenderSiteBundleInput's own `contactForm` field in ../index.tsx for
+   * the full "this package renders no forms of its own" rationale. */
+  contactForm?: ReactElement;
 }
 
 type BlockRenderer = (
@@ -303,7 +307,12 @@ function renderSermonEmbedBlock(
   const archiveUrl = sanitizeHref(props.archiveUrl) ?? undefined;
   if (!liveUrl && !archiveUrl) return null;
   return (
-    <SermonEmbed liveUrl={liveUrl} archiveUrl={archiveUrl} headingClassName={ctx.headingClassName} />
+    <SermonEmbed
+      liveUrl={liveUrl}
+      archiveUrl={archiveUrl}
+      description={asNonEmptyString(props.description) ?? undefined}
+      headingClassName={ctx.headingClassName}
+    />
   );
 }
 
@@ -334,6 +343,41 @@ function renderProseBlock(
   );
 }
 
+function renderContactFormBlock(
+  props: Record<string, unknown>,
+  ctx: BlockRenderContext,
+): ReactElement | null {
+  // No `ctx.contactForm` means the caller never wired one up (or this
+  // page rendered outside presby's own runtime, e.g. a unit test) --
+  // skip the block entirely rather than render heading/aside chrome
+  // around an empty form slot.
+  if (!ctx.contactForm) return null;
+  const heading = asNonEmptyString(props.heading);
+  if (heading === null) return null;
+  const intro = asNonEmptyString(props.intro);
+  const aside = asString(props.aside);
+  const headingColor = asHexColor(props.headingColor) ?? undefined;
+  return (
+    <section
+      data-block="contact-form"
+      data-has-aside={aside && aside.trim().length > 0 ? "true" : undefined}
+    >
+      <div data-slot="main">
+        <h2 className={ctx.headingClassName} style={headingColor ? { color: headingColor } : undefined}>
+          {heading}
+        </h2>
+        {intro ? <p data-slot="intro">{intro}</p> : null}
+        {ctx.contactForm}
+      </div>
+      {aside && aside.trim().length > 0 ? (
+        <div data-slot="aside">
+          <Prose body={aside} headingClassName={ctx.headingClassName} />
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export const BLOCK_REGISTRY: Record<string, BlockRenderer> = {
   hero: renderHeroBlock,
   featureGrid: renderFeatureGridBlock,
@@ -347,6 +391,7 @@ export const BLOCK_REGISTRY: Record<string, BlockRenderer> = {
   donateLink: renderDonateLinkBlock,
   prose: renderProseBlock,
   gallery: renderGalleryBlock,
+  contactForm: renderContactFormBlock,
 };
 
 /** Every block `type` this release recognizes — anything else is skipped

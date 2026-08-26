@@ -93,6 +93,32 @@ export interface RenderSiteBundleInput {
    * than a second manifestKey lookup path. */
   logoUrl: string | null;
   organizationName: string;
+  /** The site's own public origin (e.g. "https://example.invalid") — used
+   * for canonical URLs / OpenGraph absolute image URLs. Kept alongside
+   * `pageUrl` rather than derived from it, since `pageUrl` only knows the
+   * bundle-relative path scheme, not the scheme+host. */
+  origin?: string;
+  /**
+   * Folds the member-portal link (`portalUrl`) into an EXISTING
+   * content-authored nav group (e.g. "Connect") as a synthetic entry,
+   * instead of `Nav` rendering it as its own separate flat "Member Login"
+   * link. `portalNavGroup`+`portalLabel` must both be present for this —
+   * either alone falls back to the flat-link behavior below.
+   */
+  portalNavGroup?: string;
+  portalLabel?: string;
+  /** Sort position within `portalNavGroup`, same ordering semantics as a
+   * page's own `navOrder` frontMatter — unset sorts last. */
+  portalNavOrder?: number;
+  /**
+   * The interactive contact-form element, already built by the caller
+   * (presby owns the submission handling — this package renders no forms
+   * of its own, the same "content is content, interactivity is the
+   * caller's job" boundary as `portalUrl`). A `{"type": "contactForm"}`
+   * content block renders this element wrapped in this package's own
+   * heading/intro/aside chrome; a page with no such block never sees it.
+   */
+  contactForm?: ReactElement;
 }
 
 function isContentBlockShape(value: unknown): value is { type: string; props: unknown } {
@@ -117,7 +143,21 @@ function isContentBlockShape(value: unknown): value is { type: string; props: un
  * final list; entries without it keep their `pages` array order,
  * stable-sorted after the ordered ones.
  */
-function navEntriesFor(pages: SiteKitPage[], pageUrl: (path: string) => string): NavEntry[] {
+/**
+ * `extraEntries` merges synthetic, non-page-derived entries (currently just
+ * the portal link, when `portalNavGroup`+`portalLabel` fold it into an
+ * existing group) into the SAME numeric sort pass as page-derived entries —
+ * comparing a re-derived `order` value after the fact, once page identity
+ * has already been erased down to `{path, label, href, group, highlight}`,
+ * would compare apples to nothing. `index` for an extra entry is
+ * `pages.length` so ties against same-order page entries land after them,
+ * matching "unset sorts last" for the tie itself.
+ */
+function navEntriesFor(
+  pages: SiteKitPage[],
+  pageUrl: (path: string) => string,
+  extraEntries: { entry: NavEntry; order: number }[] = [],
+): NavEntry[] {
   const withOrder = pages.flatMap((page, index) => {
     const fm = isRecord(page.frontMatter) ? page.frontMatter : {};
     const label = asNonEmptyString(fm.navLabel);
@@ -134,7 +174,11 @@ function navEntriesFor(pages: SiteKitPage[], pageUrl: (path: string) => string):
     };
     return [{ entry, order: order ?? Number.MAX_SAFE_INTEGER, index }];
   });
-  return withOrder
+  const withExtras = [
+    ...withOrder,
+    ...extraEntries.map((e) => ({ ...e, index: pages.length })),
+  ];
+  return withExtras
     .sort((a, b) => a.order - b.order || a.index - b.index)
     .map((w) => w.entry);
 }
@@ -192,6 +236,7 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
     pageUrl: input.pageUrl,
     profile: input.profile,
     headingClassName: input.brand?.fontPairing.headingClassName,
+    contactForm: input.contactForm,
   };
 
   const blocks = extractBlocks(page.mdxAst);
@@ -205,7 +250,27 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
     })
     .filter((entry): entry is { key: string; element: ReactElement } => entry !== null);
 
-  const entries = navEntriesFor(input.pages, input.pageUrl);
+  const grouped = Boolean(
+    input.portalUrl && input.portalNavGroup && input.portalLabel,
+  );
+  const entries = navEntriesFor(
+    input.pages,
+    input.pageUrl,
+    grouped
+      ? [
+          {
+            entry: {
+              path: input.portalUrl!,
+              label: input.portalLabel!,
+              href: input.portalUrl!,
+              group: input.portalNavGroup!,
+              highlight: false,
+            },
+            order: input.portalNavOrder ?? Number.MAX_SAFE_INTEGER,
+          },
+        ]
+      : [],
+  );
 
   return (
     <div
@@ -218,7 +283,7 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
       <Nav
         entries={entries}
         currentPath={input.currentPath}
-        portalUrl={input.portalUrl}
+        portalUrl={grouped ? null : input.portalUrl}
         logoUrl={input.logoUrl}
         logoAlt={`${input.organizationName} logo`}
         organizationName={input.organizationName}

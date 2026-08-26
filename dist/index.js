@@ -29,7 +29,17 @@ function isContentBlockShape(value) {
  * final list; entries without it keep their `pages` array order,
  * stable-sorted after the ordered ones.
  */
-function navEntriesFor(pages, pageUrl) {
+/**
+ * `extraEntries` merges synthetic, non-page-derived entries (currently just
+ * the portal link, when `portalNavGroup`+`portalLabel` fold it into an
+ * existing group) into the SAME numeric sort pass as page-derived entries —
+ * comparing a re-derived `order` value after the fact, once page identity
+ * has already been erased down to `{path, label, href, group, highlight}`,
+ * would compare apples to nothing. `index` for an extra entry is
+ * `pages.length` so ties against same-order page entries land after them,
+ * matching "unset sorts last" for the tie itself.
+ */
+function navEntriesFor(pages, pageUrl, extraEntries = []) {
     const withOrder = pages.flatMap((page, index) => {
         const fm = (0, utils_1.isRecord)(page.frontMatter) ? page.frontMatter : {};
         const label = (0, utils_1.asNonEmptyString)(fm.navLabel);
@@ -47,7 +57,11 @@ function navEntriesFor(pages, pageUrl) {
         };
         return [{ entry, order: order ?? Number.MAX_SAFE_INTEGER, index }];
     });
-    return withOrder
+    const withExtras = [
+        ...withOrder,
+        ...extraEntries.map((e) => ({ ...e, index: pages.length })),
+    ];
+    return withExtras
         .sort((a, b) => a.order - b.order || a.index - b.index)
         .map((w) => w.entry);
 }
@@ -105,6 +119,7 @@ function renderSiteBundle(input) {
         pageUrl: input.pageUrl,
         profile: input.profile,
         headingClassName: input.brand?.fontPairing.headingClassName,
+        contactForm: input.contactForm,
     };
     const blocks = extractBlocks(page.mdxAst);
     const rendered = blocks
@@ -118,10 +133,24 @@ function renderSiteBundle(input) {
         return { key: `${block.type}-${index}`, element };
     })
         .filter((entry) => entry !== null);
-    const entries = navEntriesFor(input.pages, input.pageUrl);
+    const grouped = Boolean(input.portalUrl && input.portalNavGroup && input.portalLabel);
+    const entries = navEntriesFor(input.pages, input.pageUrl, grouped
+        ? [
+            {
+                entry: {
+                    path: input.portalUrl,
+                    label: input.portalLabel,
+                    href: input.portalUrl,
+                    group: input.portalNavGroup,
+                    highlight: false,
+                },
+                order: input.portalNavOrder ?? Number.MAX_SAFE_INTEGER,
+            },
+        ]
+        : []);
     return ((0, jsx_runtime_1.jsxs)("div", { className: input.brand?.fontPairing.bodyClassName
             ? `presby-site ${input.brand.fontPairing.bodyClassName}`
-            : "presby-site", children: [(0, jsx_runtime_1.jsx)(Nav_1.Nav, { entries: entries, currentPath: input.currentPath, portalUrl: input.portalUrl, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName, organizationHomeUrl: input.pageUrl("/"), promoText: promoTextFor(input.profile) }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName, entries: entries, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName })] }));
+            : "presby-site", children: [(0, jsx_runtime_1.jsx)(Nav_1.Nav, { entries: entries, currentPath: input.currentPath, portalUrl: grouped ? null : input.portalUrl, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName, organizationHomeUrl: input.pageUrl("/"), promoText: promoTextFor(input.profile) }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName, entries: entries, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName })] }));
 }
 var blocks_2 = require("./blocks");
 Object.defineProperty(exports, "ALLOWED_BLOCK_TYPES", { enumerable: true, get: function () { return blocks_2.ALLOWED_BLOCK_TYPES; } });

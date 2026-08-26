@@ -222,7 +222,7 @@ function renderSermonEmbedBlock(props, ctx) {
     const archiveUrl = (0, utils_1.sanitizeHref)(props.archiveUrl) ?? undefined;
     if (!liveUrl && !archiveUrl)
         return null;
-    return ((0, jsx_runtime_1.jsx)(SermonEmbed_1.SermonEmbed, { liveUrl: liveUrl, archiveUrl: archiveUrl, headingClassName: ctx.headingClassName }));
+    return ((0, jsx_runtime_1.jsx)(SermonEmbed_1.SermonEmbed, { liveUrl: liveUrl, archiveUrl: archiveUrl, description: (0, utils_1.asNonEmptyString)(props.description) ?? undefined, headingClassName: ctx.headingClassName }));
 }
 function renderDonateLinkBlock(props, ctx) {
     const label = (0, utils_1.asNonEmptyString)(props.label);
@@ -238,6 +238,21 @@ function renderProseBlock(props, ctx) {
     const columns = typeof props.columns === "number" ? props.columns : undefined;
     return ((0, jsx_runtime_1.jsx)(Prose_1.Prose, { body: body, headingClassName: ctx.headingClassName, columns: columns, headingColor: (0, utils_1.asHexColor)(props.headingColor) ?? undefined }));
 }
+function renderContactFormBlock(props, ctx) {
+    // No `ctx.contactForm` means the caller never wired one up (or this
+    // page rendered outside presby's own runtime, e.g. a unit test) --
+    // skip the block entirely rather than render heading/aside chrome
+    // around an empty form slot.
+    if (!ctx.contactForm)
+        return null;
+    const heading = (0, utils_1.asNonEmptyString)(props.heading);
+    if (heading === null)
+        return null;
+    const intro = (0, utils_1.asNonEmptyString)(props.intro);
+    const aside = (0, utils_1.asString)(props.aside);
+    const headingColor = (0, utils_1.asHexColor)(props.headingColor) ?? undefined;
+    return ((0, jsx_runtime_1.jsxs)("section", { "data-block": "contact-form", "data-has-aside": aside && aside.trim().length > 0 ? "true" : undefined, children: [(0, jsx_runtime_1.jsxs)("div", { "data-slot": "main", children: [(0, jsx_runtime_1.jsx)("h2", { className: ctx.headingClassName, style: headingColor ? { color: headingColor } : undefined, children: heading }), intro ? (0, jsx_runtime_1.jsx)("p", { "data-slot": "intro", children: intro }) : null, ctx.contactForm] }), aside && aside.trim().length > 0 ? ((0, jsx_runtime_1.jsx)("div", { "data-slot": "aside", children: (0, jsx_runtime_1.jsx)(Prose_1.Prose, { body: aside, headingClassName: ctx.headingClassName }) })) : null] }));
+}
 exports.BLOCK_REGISTRY = {
     hero: renderHeroBlock,
     featureGrid: renderFeatureGridBlock,
@@ -251,6 +266,7 @@ exports.BLOCK_REGISTRY = {
     donateLink: renderDonateLinkBlock,
     prose: renderProseBlock,
     gallery: renderGalleryBlock,
+    contactForm: renderContactFormBlock,
 };
 /** Every block `type` this release recognizes — anything else is skipped
  * by `renderSiteBundle()`, never rendered, never executed. */

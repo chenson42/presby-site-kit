@@ -84,6 +84,32 @@ export interface RenderSiteBundleInput {
      * than a second manifestKey lookup path. */
     logoUrl: string | null;
     organizationName: string;
+    /** The site's own public origin (e.g. "https://example.invalid") — used
+     * for canonical URLs / OpenGraph absolute image URLs. Kept alongside
+     * `pageUrl` rather than derived from it, since `pageUrl` only knows the
+     * bundle-relative path scheme, not the scheme+host. */
+    origin?: string;
+    /**
+     * Folds the member-portal link (`portalUrl`) into an EXISTING
+     * content-authored nav group (e.g. "Connect") as a synthetic entry,
+     * instead of `Nav` rendering it as its own separate flat "Member Login"
+     * link. `portalNavGroup`+`portalLabel` must both be present for this —
+     * either alone falls back to the flat-link behavior below.
+     */
+    portalNavGroup?: string;
+    portalLabel?: string;
+    /** Sort position within `portalNavGroup`, same ordering semantics as a
+     * page's own `navOrder` frontMatter — unset sorts last. */
+    portalNavOrder?: number;
+    /**
+     * The interactive contact-form element, already built by the caller
+     * (presby owns the submission handling — this package renders no forms
+     * of its own, the same "content is content, interactivity is the
+     * caller's job" boundary as `portalUrl`). A `{"type": "contactForm"}`
+     * content block renders this element wrapped in this package's own
+     * heading/intro/aside chrome; a page with no such block never sees it.
+     */
+    contactForm?: ReactElement;
 }
 /**
  * Renders the page in `input.pages` whose `path` matches

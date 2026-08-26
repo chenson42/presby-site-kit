@@ -842,23 +842,48 @@
  * ------------------------------------------------------------------- */
 
 .presby-site [data-block="sermon-embed"] {
-  border: 1px solid var(--border);
-  border-radius: var(--site-radius);
-  padding: 1.5rem;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 1.5rem;
+  text-align: center;
+  /* Gutter-relative, not max-width alone -- max-width alone only binds
+   * above ~1414px viewport width; below that the frame would span the
+   * full viewport while every other section stays gutter-inset. */
+  width: calc(100% - 2 * var(--site-gutter));
+  margin: 0 auto;
 }
 
 .presby-site [data-block="sermon-embed"] h2 {
-  font-size: 1.1rem;
-  margin: 0;
-  flex: 1 1 auto;
-  min-width: 10rem;
+  font-size: 3.375rem; /* 54px */
+  color: var(--primary);
+  margin: 0 0 0.5rem;
 }
 
-.presby-site [data-block="sermon-embed"] a {
+.presby-site [data-block="sermon-embed"] [data-slot="description"] {
+  max-width: 42rem;
+  margin: 0 auto 1.5rem;
+  color: var(--muted-foreground);
+}
+
+.presby-site [data-block="sermon-embed"] [data-slot="frame"] {
+  aspect-ratio: 16 / 9;
+  border-radius: var(--site-image-radius);
+  background: #efedec;
+  overflow: hidden;
+  margin: 0 auto 1.25rem;
+}
+
+.presby-site [data-block="sermon-embed"] [data-slot="frame"] iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.presby-site [data-block="sermon-embed"] [data-slot="links"] {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.presby-site [data-block="sermon-embed"] [data-slot="links"] a {
   font-weight: 600;
 }
 
@@ -946,6 +971,42 @@
 
 .presby-site [data-block="prose"] li {
   margin: 0 0 0.35rem;
+}
+
+/* ---------------------------------------------------------------------
+ * ContactForm -- heading/intro/aside chrome around the caller's own
+ * interactive form element (`ctx.contactForm`). This package renders NO
+ * `<input>`/`<label>` elements of its own and applies NO reset to them --
+ * the form's real fields are presby's own shadcn primitives, which already
+ * carry their own visible borders; this stylesheet only lays out the
+ * two-column (form | aside) grid around them.
+ * ------------------------------------------------------------------- */
+
+.presby-site [data-block="contact-form"] {
+  display: grid;
+  gap: 3rem;
+  max-width: 64rem;
+}
+
+.presby-site [data-block="contact-form"][data-has-aside="true"] {
+  grid-template-columns: 1.4fr 1fr;
+}
+
+.presby-site [data-block="contact-form"] [data-slot="intro"] {
+  margin: 0 0 1.5rem;
+  color: var(--muted-foreground);
+}
+
+.presby-site [data-block="contact-form"] [data-slot="aside"] {
+  padding: 1.5rem;
+  border-radius: var(--site-radius);
+  background: var(--muted);
+}
+
+@media (max-width: 768px) {
+  .presby-site [data-block="contact-form"][data-has-aside="true"] {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---------------------------------------------------------------------

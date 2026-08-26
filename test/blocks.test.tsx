@@ -10,10 +10,11 @@ const baseCtx: BlockRenderContext = {
 };
 
 describe("ALLOWED_BLOCK_TYPES / BLOCK_REGISTRY", () => {
-  it("lists the design note's eleven block types plus v3.4.0's gallery", () => {
+  it("lists the design note's eleven block types plus gallery and contactForm", () => {
     expect([...ALLOWED_BLOCK_TYPES].sort()).toEqual(
       [
         "callout",
+        "contactForm",
         "donateLink",
         "eventList",
         "featureGrid",
@@ -152,6 +153,57 @@ describe("individual block renderers — malformed props render nothing, not a t
 
   it("sermonEmbed: neither url set renders null", () => {
     expect(BLOCK_REGISTRY.sermonEmbed({}, baseCtx)).toBeNull();
+  });
+
+  it("contactForm: skips entirely when the caller never wires ctx.contactForm, even with valid props", () => {
+    expect(
+      BLOCK_REGISTRY.contactForm({ heading: "Contact" }, baseCtx),
+    ).toBeNull();
+  });
+
+  it("contactForm: missing heading renders null even when ctx.contactForm is present", () => {
+    const ctxWithForm: BlockRenderContext = {
+      ...baseCtx,
+      contactForm: <form data-testid="the-real-form" />,
+    };
+    expect(BLOCK_REGISTRY.contactForm({}, ctxWithForm)).toBeNull();
+  });
+
+  it("contactForm: renders the caller's real form element plus heading/intro/aside, data-has-aside stamped only when aside is present", () => {
+    const ctxWithForm: BlockRenderContext = {
+      ...baseCtx,
+      contactForm: <form data-testid="the-real-form" />,
+    };
+    const withAside = render(
+      <>
+        {BLOCK_REGISTRY.contactForm(
+          {
+            heading: "Contact",
+            intro: "Send us a message.",
+            aside: "#### Address\n\n123 Main St",
+            headingColor: "#42714f",
+          },
+          ctxWithForm,
+        )}
+      </>,
+    );
+    expect(withAside.getByTestId("the-real-form")).toBeTruthy();
+    expect(withAside.getByText("Send us a message.")).toBeTruthy();
+    expect(withAside.getByRole("heading", { level: 4, name: "Address" })).toBeTruthy();
+    expect(
+      withAside.container
+        .querySelector('[data-block="contact-form"]')
+        ?.getAttribute("data-has-aside"),
+    ).toBe("true");
+
+    const withoutAside = render(
+      <>{BLOCK_REGISTRY.contactForm({ heading: "Contact" }, ctxWithForm)}</>,
+    );
+    expect(
+      withoutAside.container
+        .querySelector('[data-block="contact-form"]')
+        ?.hasAttribute("data-has-aside"),
+    ).toBe(false);
   });
 
   it("featureGrid: an item's optional image manifestKey resolves through ctx.imageUrl", () => {
