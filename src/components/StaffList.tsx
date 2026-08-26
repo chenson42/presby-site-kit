@@ -2,7 +2,14 @@ import type { ReactElement } from "react";
 
 export interface StaffPerson {
   name: string;
-  title: string;
+  /** Optional -- the reference site's committees page lists members by name
+   * only, with no per-person role/title at all (the group's own name, a
+   * `####` heading right above the staff-list, already says which
+   * committee they're on; repeating it under every single person there
+   * was a real, confirmed redundancy). Leadership's own staff entries DO
+   * carry a genuine per-person role and keep rendering it -- this is an
+   * optional field, not a removed one. */
+  title?: string;
   phone?: string;
   email?: string;
   /** An already-resolved image URL — see Hero.tsx's own note on the same
@@ -30,7 +37,7 @@ export function StaffList({
               <img src={person.photoUrl} alt={person.name} />
             ) : null}
             <h3 className={headingClassName}>{person.name}</h3>
-            <p>{person.title}</p>
+            {person.title ? <p>{person.title}</p> : null}
             {person.phone ? (
               <a href={`tel:${person.phone}`}>{person.phone}</a>
             ) : null}

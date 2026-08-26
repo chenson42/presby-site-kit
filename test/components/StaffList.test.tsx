@@ -37,6 +37,14 @@ describe("StaffList", () => {
     expect(container.querySelector("img")).toBeNull();
   });
 
+  it("omits the title paragraph entirely when title is unset -- committees' real case, no per-person subtitle", () => {
+    const { container } = render(
+      <StaffList people={[{ name: "Naomi Wriston" }]} />,
+    );
+    expect(screen.getByText("Naomi Wriston")).toBeTruthy();
+    expect(container.querySelectorAll("p").length).toBe(0);
+  });
+
   it("renders nothing for an empty roster", () => {
     const { container } = render(<StaffList people={[]} />);
     expect(container.innerHTML).toBe("");

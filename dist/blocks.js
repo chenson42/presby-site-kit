@@ -124,14 +124,17 @@ function asStaffPeople(value, ctx) {
         if (!(0, utils_1.isRecord)(raw))
             return [];
         const name = (0, utils_1.asNonEmptyString)(raw.name);
-        const title = (0, utils_1.asNonEmptyString)(raw.title);
-        if (name === null || title === null)
+        // title is optional (StaffList.tsx) -- was wrongly required here too,
+        // which silently DROPPED a person entirely from the page if their
+        // entry had no title, rather than just omitting a subtitle line.
+        if (name === null)
             return [];
+        const title = (0, utils_1.asNonEmptyString)(raw.title);
         const photoKey = (0, utils_1.asNonEmptyString)(raw.photo);
         return [
             {
                 name,
-                title,
+                title: title ?? undefined,
                 phone: (0, utils_1.asNonEmptyString)(raw.phone) ?? undefined,
                 email: (0, utils_1.asNonEmptyString)(raw.email) ?? undefined,
                 photoUrl: photoKey ? ctx.imageUrl(photoKey) : undefined,

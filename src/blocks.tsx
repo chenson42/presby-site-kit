@@ -190,13 +190,16 @@ function asStaffPeople(value: unknown, ctx: BlockRenderContext): StaffPerson[] {
   return asArray(value).flatMap((raw) => {
     if (!isRecord(raw)) return [];
     const name = asNonEmptyString(raw.name);
+    // title is optional (StaffList.tsx) -- was wrongly required here too,
+    // which silently DROPPED a person entirely from the page if their
+    // entry had no title, rather than just omitting a subtitle line.
+    if (name === null) return [];
     const title = asNonEmptyString(raw.title);
-    if (name === null || title === null) return [];
     const photoKey = asNonEmptyString(raw.photo);
     return [
       {
         name,
-        title,
+        title: title ?? undefined,
         phone: asNonEmptyString(raw.phone) ?? undefined,
         email: asNonEmptyString(raw.email) ?? undefined,
         photoUrl: photoKey ? ctx.imageUrl(photoKey) : undefined,
