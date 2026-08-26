@@ -3,7 +3,7 @@ import { ALLOWED_BLOCK_TYPES, BLOCK_REGISTRY, type BlockRenderContext } from "./
 import { Footer } from "./components/Footer";
 import { Nav, type NavEntry } from "./components/Nav";
 import type { ContentBlock, RenderSiteBundleProfile, SiteKitPage } from "./types";
-import { asNonEmptyString, isRecord } from "./utils";
+import { asNonEmptyString, dayName, formatClockTime, isRecord, sanitizeHref } from "./utils";
 
 export type { SiteKitPage } from "./types";
 
@@ -87,6 +87,12 @@ export interface RenderSiteBundleInput {
    * DESIGN-v1-components.md's "Org-profile data dependency".
    */
   profile: RenderSiteBundleProfile | null;
+  /** An already-resolved logo image URL, or `null` for the typographic
+   * fallback -- the same `imageUrl`-closure discipline as every other
+   * image reference in this package, resolved once by the caller rather
+   * than a second manifestKey lookup path. */
+  logoUrl: string | null;
+  organizationName: string;
 }
 
 function isContentBlockShape(value: unknown): value is { type: string; props: unknown } {
@@ -100,13 +106,49 @@ function isContentBlockShape(value: unknown): value is { type: string; props: un
  * component (it owns the narrow-viewport open/closed toggle state), so it
  * can only receive serializable props — `pageUrl`, a closure, cannot cross
  * that boundary, but the plain `{ path, label, href }` this produces can. */
+/**
+ * A page opts into nav the same way as before (`frontMatter.navLabel`),
+ * now with three more OPTIONAL frontMatter keys the reference site's own
+ * structure needed: `navGroup` (a dropdown group name -- unset renders as
+ * a top-level item), `navHref` (an absolute external URL override -- the
+ * reference's own "Give" item links straight to an external donation
+ * platform, never a page within this bundle), and `navHighlight`
+ * (renders as a filled pill button). `navOrder` (a number) sorts the
+ * final list; entries without it keep their `pages` array order,
+ * stable-sorted after the ordered ones.
+ */
 function navEntriesFor(pages: SiteKitPage[], pageUrl: (path: string) => string): NavEntry[] {
-  return pages.flatMap((page) => {
-    const label = isRecord(page.frontMatter)
-      ? asNonEmptyString(page.frontMatter.navLabel)
-      : null;
-    return label ? [{ path: page.path, label, href: pageUrl(page.path) }] : [];
+  const withOrder = pages.flatMap((page, index) => {
+    const fm = isRecord(page.frontMatter) ? page.frontMatter : {};
+    const label = asNonEmptyString(fm.navLabel);
+    if (label === null) return [];
+    const group = asNonEmptyString(fm.navGroup);
+    const hrefOverride = sanitizeHref(fm.navHref);
+    const order = typeof fm.navOrder === "number" ? fm.navOrder : null;
+    const entry: NavEntry = {
+      path: page.path,
+      label,
+      href: hrefOverride ?? pageUrl(page.path),
+      group,
+      highlight: fm.navHighlight === true,
+    };
+    return [{ entry, order: order ?? Number.MAX_SAFE_INTEGER, index }];
   });
+  return withOrder
+    .sort((a, b) => a.order - b.order || a.index - b.index)
+    .map((w) => w.entry);
+}
+
+/**
+ * "Join us Sundays at 10:15 AM" -- the reference site's own promo line,
+ * derived from the org profile's first service time rather than
+ * separately authored content, so it can never drift from the real
+ * schedule. `null` when there's no service time to build one from.
+ */
+function promoTextFor(profile: RenderSiteBundleProfile | null): string | null {
+  const first = profile?.serviceTimes[0];
+  if (!first) return null;
+  return `Join us ${dayName(first.dayOfWeek)}s at ${formatClockTime(first.startTime)}`;
 }
 
 /** Defensive narrowing of `page.mdxAst` into `ContentBlock[]`. Anything
@@ -163,6 +205,8 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
     })
     .filter((entry): entry is { key: string; element: ReactElement } => entry !== null);
 
+  const entries = navEntriesFor(input.pages, input.pageUrl);
+
   return (
     <div
       className={
@@ -172,14 +216,26 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
       }
     >
       <Nav
-        entries={navEntriesFor(input.pages, input.pageUrl)}
+        entries={entries}
         currentPath={input.currentPath}
         portalUrl={input.portalUrl}
+        logoUrl={input.logoUrl}
+        logoAlt={`${input.organizationName} logo`}
+        organizationName={input.organizationName}
+        organizationHomeUrl={input.pageUrl("/")}
+        promoText={promoTextFor(input.profile)}
       />
       {rendered.map(({ key, element }) => (
         <Fragment key={key}>{element}</Fragment>
       ))}
-      <Footer profile={input.profile} headingClassName={ctx.headingClassName} />
+      <Footer
+        profile={input.profile}
+        headingClassName={ctx.headingClassName}
+        entries={entries}
+        logoUrl={input.logoUrl}
+        logoAlt={`${input.organizationName} logo`}
+        organizationName={input.organizationName}
+      />
     </div>
   );
 }
@@ -203,7 +259,7 @@ export { Hero } from "./components/Hero";
 export type { HeroProps } from "./components/Hero";
 export { MinistryList } from "./components/MinistryList";
 export type { MinistryListItem, MinistryListProps } from "./components/MinistryList";
-export { Nav } from "./components/Nav";
+export { Nav, groupEntries } from "./components/Nav";
 export type { NavProps } from "./components/Nav";
 export { Prose } from "./components/Prose";
 export type { ProseProps } from "./components/Prose";
