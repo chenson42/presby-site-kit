@@ -714,7 +714,11 @@
 }
 
 .presby-site [data-block="callout"][data-variant="inset"] {
+  /* Matches the reference's own .bg-color-green/.bg-color-teal sections:
+   * any colored full-bleed band gets white text unconditionally, never a
+   * per-heading override -- headingColor is a split-variant-only concept. */
   background: var(--site-callout-bg, var(--secondary));
+  color: #fff;
 }
 
 .presby-site [data-block="callout"][data-variant="inset"] [data-slot="content"] {
