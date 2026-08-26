@@ -27,9 +27,21 @@
     100% - (var(--site-gutter) * 2),
     var(--site-max-width)
   );
-  --site-radius: var(--radius, 0.5rem);
-  /* Configurable corner-radius tokens -- a site's own visual identity, not
-   * fpcw-specific. Unset falls back to the platform's own --radius. */
+  /* NOT `var(--radius, 0.5rem)` -- presby's platform `--radius` (0.5rem) is
+   * ALWAYS set at :root (globals.css), so that fallback never actually
+   * triggers; every border-radius on this site has been silently rendering
+   * at the platform's 8px instead of the reference site's own real 24px
+   * this whole session, regardless of which individual block's CSS rule
+   * "correctly" referenced this token. Root-caused by diffing the real
+   * site's own computed `border-radius` (24px, confirmed on multiple real
+   * pages/block types) against this token's actual resolved value locally.
+   * `--radius` itself is platform-fixed by design (DECISION-048: radius is
+   * not org-brandable) -- this is deliberately a SEPARATE, public-site-only
+   * identity, hardcoded to the one real site this renders today. No
+   * mechanism yet exists for a second real site to set its own value; that
+   * belongs in presby's own per-org render pipeline, out of this package's
+   * scope. */
+  --site-radius: 1.5rem;
   --site-image-radius: var(--site-radius);
   --site-button-radius: 9999px;
   /* The reference's own neutral body-ink color -- independent of brand,
@@ -780,6 +792,14 @@
   height: auto;
   max-height: 24rem;
   object-fit: contain;
+  /* Was entirely missing -- the reference's own callout image (both the
+   * plain split layout AND the full-bleed inset band) is consistently
+   * rounded at the site's own image radius; confirmed on two structurally
+   * different real sections (home page's green MAP band, and the mobility
+   * page's plain image+text layout), both measuring 24px. Verified locally
+   * this was rendering at 0px/flush before this fix (no radius, no gutter,
+   * touching the section's true edge at x=0). */
+  border-radius: var(--site-image-radius);
 }
 
 .presby-site [data-block="callout"][data-variant="inset"] {
@@ -792,9 +812,10 @@
    * given at all (falls back to --secondary, an unknown color at build
    * time). */
   color: #fff;
-}
-
-.presby-site [data-block="callout"][data-variant="inset"] [data-slot="content"] {
+  /* Applied to the WHOLE grid (image + content), not just content below --
+   * the image slot had no gutter at all and sat flush against the full-bleed
+   * band's true edge (confirmed locally: image x === section x, 0 gap).
+   * The reference's own image isn't edge-to-edge either at this variant. */
   padding-inline: max(var(--site-gutter), calc((100% - var(--site-max-width)) / 2 + var(--site-gutter)));
 }
 
