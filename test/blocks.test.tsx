@@ -94,10 +94,17 @@ describe("individual block renderers — malformed props render nothing, not a t
     );
   });
 
-  it("callout: cta is required — missing cta renders null", () => {
-    expect(
-      BLOCK_REGISTRY.callout({ heading: "Need help?", body: "We can help." }, baseCtx),
-    ).toBeNull();
+  it("callout: cta is OPTIONAL — the reference site's own \"Stay in touch\" section has no button", () => {
+    const element = BLOCK_REGISTRY.callout(
+      { heading: "Need help?", body: "We can help." },
+      baseCtx,
+    );
+    expect(element).not.toBeNull();
+  });
+
+  it("callout: heading or body missing still renders null", () => {
+    expect(BLOCK_REGISTRY.callout({ body: "We can help." }, baseCtx)).toBeNull();
+    expect(BLOCK_REGISTRY.callout({ heading: "Need help?" }, baseCtx)).toBeNull();
   });
 
   it("callout: cta href resolves through ctx.pageUrl", () => {

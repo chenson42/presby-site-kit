@@ -12,7 +12,15 @@ import { SermonEmbed } from "./components/SermonEmbed";
 import { StaffList, type StaffPerson } from "./components/StaffList";
 import { ValuesGrid, type ValuesGridItem } from "./components/ValuesGrid";
 import type { RenderSiteBundleProfile } from "./types";
-import { asArray, asCta, asNonEmptyString, asString, isRecord, sanitizeHref } from "./utils";
+import {
+  asArray,
+  asCta,
+  asHexColor,
+  asNonEmptyString,
+  asString,
+  isRecord,
+  sanitizeHref,
+} from "./utils";
 
 /**
  * The fixed component allowlist DESIGN-v1-components.md's architecture call
@@ -102,7 +110,10 @@ function renderFeatureGridBlock(
 ): ReactElement | null {
   const items = asFeatureGridItems(props.items, ctx);
   if (items.length === 0) return null;
-  return <FeatureGrid items={items} headingClassName={ctx.headingClassName} />;
+  const variant = props.variant === "solid" ? "solid" : "card";
+  return (
+    <FeatureGrid items={items} headingClassName={ctx.headingClassName} variant={variant} />
+  );
 }
 
 function renderCalloutBlock(
@@ -111,17 +122,28 @@ function renderCalloutBlock(
 ): ReactElement | null {
   const heading = asNonEmptyString(props.heading);
   const body = asNonEmptyString(props.body);
-  const cta = resolveCta(asCta(props.cta), ctx);
-  if (heading === null || body === null || cta === null) return null;
+  if (heading === null || body === null) return null;
+  // `cta` is OPTIONAL -- the reference site's own "Stay in touch" callout
+  // has no button at all. `asCta`/`resolveCta` return null on a missing
+  // prop, which used to mean "skip the whole block"; now it means "render
+  // without a button."
+  const rawCta = props.cta;
+  const cta = rawCta === undefined ? null : resolveCta(asCta(rawCta), ctx);
   const imageKey = asNonEmptyString(props.image);
+  const variant = props.variant === "inset" ? "inset" : "split";
+  const imageSide = props.imageSide === "right" ? "right" : "left";
   return (
     <Callout
       heading={heading}
       body={body}
-      cta={cta}
+      cta={cta ?? undefined}
       imageUrl={imageKey ? ctx.imageUrl(imageKey) : undefined}
       imageAlt={asNonEmptyString(props.imageAlt) ?? undefined}
       headingClassName={ctx.headingClassName}
+      variant={variant}
+      imageSide={imageSide}
+      background={variant === "inset" ? asHexColor(props.background) ?? undefined : undefined}
+      headingColor={asHexColor(props.headingColor) ?? undefined}
     />
   );
 }
