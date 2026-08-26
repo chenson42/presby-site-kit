@@ -890,8 +890,14 @@
   color: #fff;
   padding: 0.6rem 1.25rem;
   border-radius: var(--site-button-radius);
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
+  /* Confirmed via computed style on the reference's real "Email Katie"
+   * button: text-transform:uppercase, letter-spacing:1.2px, font-weight:700,
+   * font-size:12px. Was plain sentence case locally. */
+  text-transform: uppercase;
+  letter-spacing: 0.075em;
+  font-size: 0.75rem;
 }
 
 /* ---------------------------------------------------------------------
