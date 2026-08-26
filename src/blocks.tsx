@@ -322,7 +322,15 @@ function renderProseBlock(
 ): ReactElement | null {
   const body = asString(props.body);
   if (body === null || body.trim().length === 0) return null;
-  return <Prose body={body} headingClassName={ctx.headingClassName} />;
+  const columns = typeof props.columns === "number" ? props.columns : undefined;
+  return (
+    <Prose
+      body={body}
+      headingClassName={ctx.headingClassName}
+      columns={columns}
+      headingColor={asHexColor(props.headingColor) ?? undefined}
+    />
+  );
 }
 
 export const BLOCK_REGISTRY: Record<string, BlockRenderer> = {

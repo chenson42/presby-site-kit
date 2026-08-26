@@ -820,9 +820,58 @@
   max-width: 42rem;
 }
 
-.presby-site [data-block="prose"] h2,
+/* Multi-column layout (v4.1.0) -- left-anchored, not width-constrained to
+ * 42rem like the single-column default, since a 2-3 column spread needs
+ * the full content width to read as columns rather than a narrow stack. A
+ * `---` rule in the source markdown renders as a real <hr> that ALSO
+ * forces a column break -- see markdown.tsx's own RULE_RE comment -- so an
+ * author controls exactly where the split falls. */
+.presby-site [data-block="prose"][data-columns] {
+  max-width: none;
+  column-gap: 3rem;
+}
+
+.presby-site [data-block="prose"][data-columns="2"] {
+  column-count: 2;
+}
+
+.presby-site [data-block="prose"][data-columns="3"] {
+  column-count: 3;
+}
+
+.presby-site [data-block="prose"][data-columns] hr {
+  border: none;
+  margin: 0;
+  break-after: column;
+}
+
+.presby-site [data-block="prose"] h2 {
+  font-size: 4.25rem; /* 68px */
+}
+
 .presby-site [data-block="prose"] h3 {
+  font-size: 3.375rem; /* 54px */
+}
+
+.presby-site [data-block="prose"] h4 {
+  font-size: 2.25rem; /* 36px */
+}
+
+.presby-site [data-block="prose"] h5 {
+  font-size: 1.875rem; /* 30px */
+}
+
+.presby-site [data-block="prose"] h6 {
+  font-size: 1.25rem; /* 20px */
+}
+
+.presby-site [data-block="prose"] h2,
+.presby-site [data-block="prose"] h3,
+.presby-site [data-block="prose"] h4,
+.presby-site [data-block="prose"] h5,
+.presby-site [data-block="prose"] h6 {
   margin: 1.5rem 0 0.5rem;
+  color: var(--md-heading-color, var(--site-ink));
 }
 
 .presby-site [data-block="prose"] p {
@@ -830,6 +879,7 @@
 }
 
 .presby-site [data-block="prose"] ul {
+  list-style: disc;
   margin: 0 0 1rem;
   padding-left: 1.25rem;
 }

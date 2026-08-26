@@ -55,3 +55,5 @@ export declare function formatClockTime(value: string): string;
  */
 export declare function formatEventDateTime(iso: string): string | null;
 export declare function mapsSearchUrl(address: string): string;
+export declare function asHexColor(value: unknown): string | null;
+export declare function toTrustedEmbedUrl(rawUrl: unknown): string | null;

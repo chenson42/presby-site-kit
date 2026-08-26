@@ -61,6 +61,11 @@ function parseInline(text) {
 const HEADING_RE = /^(#{1,6})\s+(.+)$/;
 const UNORDERED_RE = /^[-*]\s+(.+)$/;
 const ORDERED_RE = /^\d+\.\s+(.+)$/;
+// Deliberately requires 3+ hyphens on their own line so it never collides
+// with UNORDERED_RE's single `- item` bullet syntax. Doubles as an EXPLICIT
+// column-break marker for Prose's `columns` layout — see Prose.tsx's own
+// comment on why an author-placed break beats CSS multicol auto-balancing.
+const RULE_RE = /^-{3,}\s*$/;
 function parseBlocks(source) {
     const lines = source.replace(/\r\n/g, "\n").split("\n");
     const blocks = [];
@@ -68,6 +73,11 @@ function parseBlocks(source) {
     while (i < lines.length) {
         const line = lines[i];
         if (line.trim().length === 0) {
+            i++;
+            continue;
+        }
+        if (RULE_RE.test(line)) {
+            blocks.push({ kind: "rule" });
             i++;
             continue;
         }
@@ -104,7 +114,8 @@ function parseBlocks(source) {
             lines[i].trim().length > 0 &&
             !HEADING_RE.test(lines[i]) &&
             !UNORDERED_RE.test(lines[i]) &&
-            !ORDERED_RE.test(lines[i])) {
+            !ORDERED_RE.test(lines[i]) &&
+            !RULE_RE.test(lines[i])) {
             paragraphLines.push(lines[i].trim());
             i++;
         }
@@ -130,6 +141,8 @@ function renderMarkdown({ body, headingClassName, }) {
                 return ((0, jsx_runtime_1.jsx)("ol", { children: block.items.map((item, itemIndex) => (
                     // eslint-disable-next-line react/no-array-index-key
                     (0, jsx_runtime_1.jsx)("li", { children: parseInline(item) }, itemIndex))) }, key));
+            case "rule":
+                return (0, jsx_runtime_1.jsx)("hr", {}, key);
         }
     });
 }

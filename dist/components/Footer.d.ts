@@ -1,17 +1,18 @@
 import type { ReactElement } from "react";
 import type { RenderSiteBundleProfile } from "../types";
+import type { NavEntry } from "./Nav";
 export interface FooterProps {
-    /** `null` renders nothing at all — same null-safe-by-construction
-     * discipline as `brand`. When non-null, every individual piece (address,
-     * phone, service times, office hours, social links) is independently
-     * omitted when its own field is empty; this per-field omissibility is a
-     * hard requirement, not a nicety. */
+    /** `null` renders nothing at all -- same null-safe-by-construction
+     * discipline as `brand`. When non-null, every individual piece is
+     * independently omitted when its own field is empty. */
     profile: RenderSiteBundleProfile | null;
     headingClassName?: string;
+    /** The same grouped entries `Nav` renders as dropdowns render here as
+     * link columns under each group's own heading -- one shared grouping,
+     * two presentations, never two independent lists to keep in sync. */
+    entries: NavEntry[];
+    logoUrl: string | null;
+    logoAlt: string;
+    organizationName: string;
 }
-/**
- * Footer chrome, composed automatically by `renderSiteBundle()` below every
- * page's blocks — not a content block itself, since every page needs it.
- * Reads `profile` directly, the same as the `serviceTimes` block.
- */
-export declare function Footer({ profile, headingClassName }: FooterProps): ReactElement | null;
+export declare function Footer({ profile, headingClassName, entries, logoUrl, logoAlt, organizationName, }: FooterProps): ReactElement | null;

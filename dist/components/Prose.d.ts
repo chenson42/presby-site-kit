@@ -5,5 +5,22 @@ export interface ProseProps {
      * only. See that file's own header comment for the safety reasoning. */
     body: string;
     headingClassName?: string;
+    /**
+     * Multi-column text layout — the reference site lays some sections out as
+     * side-by-side text columns ("How to borrow" | "Our process"). 2 or 3;
+     * anything else renders single-column. A `---` horizontal rule in the
+     * markdown doubles as the EXPLICIT column break (see styles.css), so an
+     * author controls exactly where the split falls instead of trusting CSS
+     * multicol balancing to not orphan a heading mid-column.
+     */
+    columns?: number;
+    /**
+     * An already-validated `#rrggbb` heading color (`renderProseBlock`
+     * rejects anything else, same strict gate as callout's `background`) —
+     * the reference colors many of its section headings per section (its
+     * recurring `#42714f` green spans). Applied via a CSS custom property so
+     * markdown output stays style-free; unset inherits the ink color.
+     */
+    headingColor?: string;
 }
-export declare function Prose({ body, headingClassName }: ProseProps): ReactElement;
+export declare function Prose({ body, headingClassName, columns, headingColor, }: ProseProps): ReactElement;

@@ -78,6 +78,12 @@ export interface RenderSiteBundleInput {
      * DESIGN-v1-components.md's "Org-profile data dependency".
      */
     profile: RenderSiteBundleProfile | null;
+    /** An already-resolved logo image URL, or `null` for the typographic
+     * fallback -- the same `imageUrl`-closure discipline as every other
+     * image reference in this package, resolved once by the caller rather
+     * than a second manifestKey lookup path. */
+    logoUrl: string | null;
+    organizationName: string;
 }
 /**
  * Renders the page in `input.pages` whose `path` matches
@@ -114,6 +120,7 @@ export type { HeroProps } from "./components/Hero";
 export { MinistryList } from "./components/MinistryList";
 export type { MinistryListItem, MinistryListProps } from "./components/MinistryList";
 export { Nav } from "./components/Nav";
+export { groupEntries } from "./nav-grouping";
 export type { NavProps } from "./components/Nav";
 export { Prose } from "./components/Prose";
 export type { ProseProps } from "./components/Prose";
@@ -124,4 +131,6 @@ export type { SermonEmbedProps } from "./components/SermonEmbed";
 export { StaffList } from "./components/StaffList";
 export type { StaffPerson, StaffListProps } from "./components/StaffList";
 export { ValuesGrid } from "./components/ValuesGrid";
+export { buildPageMetadata, buildSitemapEntries } from "./seo";
+export type { BuildPageMetadataInput, PageMetadata, SitemapEntry } from "./seo";
 export type { ValuesGridItem, ValuesGridProps } from "./components/ValuesGrid";

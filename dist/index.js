@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ValuesGrid = exports.StaffList = exports.SermonEmbed = exports.ServiceTimes = exports.Prose = exports.Nav = exports.MinistryList = exports.Hero = exports.Gallery = exports.Footer = exports.FeatureGrid = exports.EventList = exports.DonateLink = exports.Callout = exports.ALLOWED_BLOCK_TYPES = void 0;
+exports.buildSitemapEntries = exports.buildPageMetadata = exports.ValuesGrid = exports.StaffList = exports.SermonEmbed = exports.ServiceTimes = exports.Prose = exports.groupEntries = exports.Nav = exports.MinistryList = exports.Hero = exports.Gallery = exports.Footer = exports.FeatureGrid = exports.EventList = exports.DonateLink = exports.Callout = exports.ALLOWED_BLOCK_TYPES = void 0;
 exports.renderSiteBundle = renderSiteBundle;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
@@ -18,13 +18,50 @@ function isContentBlockShape(value) {
  * component (it owns the narrow-viewport open/closed toggle state), so it
  * can only receive serializable props — `pageUrl`, a closure, cannot cross
  * that boundary, but the plain `{ path, label, href }` this produces can. */
+/**
+ * A page opts into nav the same way as before (`frontMatter.navLabel`),
+ * now with three more OPTIONAL frontMatter keys the reference site's own
+ * structure needed: `navGroup` (a dropdown group name -- unset renders as
+ * a top-level item), `navHref` (an absolute external URL override -- the
+ * reference's own "Give" item links straight to an external donation
+ * platform, never a page within this bundle), and `navHighlight`
+ * (renders as a filled pill button). `navOrder` (a number) sorts the
+ * final list; entries without it keep their `pages` array order,
+ * stable-sorted after the ordered ones.
+ */
 function navEntriesFor(pages, pageUrl) {
-    return pages.flatMap((page) => {
-        const label = (0, utils_1.isRecord)(page.frontMatter)
-            ? (0, utils_1.asNonEmptyString)(page.frontMatter.navLabel)
-            : null;
-        return label ? [{ path: page.path, label, href: pageUrl(page.path) }] : [];
+    const withOrder = pages.flatMap((page, index) => {
+        const fm = (0, utils_1.isRecord)(page.frontMatter) ? page.frontMatter : {};
+        const label = (0, utils_1.asNonEmptyString)(fm.navLabel);
+        if (label === null)
+            return [];
+        const group = (0, utils_1.asNonEmptyString)(fm.navGroup);
+        const hrefOverride = (0, utils_1.sanitizeHref)(fm.navHref);
+        const order = typeof fm.navOrder === "number" ? fm.navOrder : null;
+        const entry = {
+            path: page.path,
+            label,
+            href: hrefOverride ?? pageUrl(page.path),
+            group,
+            highlight: fm.navHighlight === true,
+        };
+        return [{ entry, order: order ?? Number.MAX_SAFE_INTEGER, index }];
     });
+    return withOrder
+        .sort((a, b) => a.order - b.order || a.index - b.index)
+        .map((w) => w.entry);
+}
+/**
+ * "Join us Sundays at 10:15 AM" -- the reference site's own promo line,
+ * derived from the org profile's first service time rather than
+ * separately authored content, so it can never drift from the real
+ * schedule. `null` when there's no service time to build one from.
+ */
+function promoTextFor(profile) {
+    const first = profile?.serviceTimes[0];
+    if (!first)
+        return null;
+    return `Join us ${(0, utils_1.dayName)(first.dayOfWeek)}s at ${(0, utils_1.formatClockTime)(first.startTime)}`;
 }
 /** Defensive narrowing of `page.mdxAst` into `ContentBlock[]`. Anything
  * that isn't the expected `{ blocks: [...] }` shape — including every
@@ -81,9 +118,10 @@ function renderSiteBundle(input) {
         return { key: `${block.type}-${index}`, element };
     })
         .filter((entry) => entry !== null);
+    const entries = navEntriesFor(input.pages, input.pageUrl);
     return ((0, jsx_runtime_1.jsxs)("div", { className: input.brand?.fontPairing.bodyClassName
             ? `presby-site ${input.brand.fontPairing.bodyClassName}`
-            : "presby-site", children: [(0, jsx_runtime_1.jsx)(Nav_1.Nav, { entries: navEntriesFor(input.pages, input.pageUrl), currentPath: input.currentPath, portalUrl: input.portalUrl }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName })] }));
+            : "presby-site", children: [(0, jsx_runtime_1.jsx)(Nav_1.Nav, { entries: entries, currentPath: input.currentPath, portalUrl: input.portalUrl, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName, organizationHomeUrl: input.pageUrl("/"), promoText: promoTextFor(input.profile) }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName, entries: entries, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName })] }));
 }
 var blocks_2 = require("./blocks");
 Object.defineProperty(exports, "ALLOWED_BLOCK_TYPES", { enumerable: true, get: function () { return blocks_2.ALLOWED_BLOCK_TYPES; } });
@@ -105,6 +143,8 @@ var MinistryList_1 = require("./components/MinistryList");
 Object.defineProperty(exports, "MinistryList", { enumerable: true, get: function () { return MinistryList_1.MinistryList; } });
 var Nav_2 = require("./components/Nav");
 Object.defineProperty(exports, "Nav", { enumerable: true, get: function () { return Nav_2.Nav; } });
+var nav_grouping_1 = require("./nav-grouping");
+Object.defineProperty(exports, "groupEntries", { enumerable: true, get: function () { return nav_grouping_1.groupEntries; } });
 var Prose_1 = require("./components/Prose");
 Object.defineProperty(exports, "Prose", { enumerable: true, get: function () { return Prose_1.Prose; } });
 var ServiceTimes_1 = require("./components/ServiceTimes");
@@ -115,3 +155,6 @@ var StaffList_1 = require("./components/StaffList");
 Object.defineProperty(exports, "StaffList", { enumerable: true, get: function () { return StaffList_1.StaffList; } });
 var ValuesGrid_1 = require("./components/ValuesGrid");
 Object.defineProperty(exports, "ValuesGrid", { enumerable: true, get: function () { return ValuesGrid_1.ValuesGrid; } });
+var seo_1 = require("./seo");
+Object.defineProperty(exports, "buildPageMetadata", { enumerable: true, get: function () { return seo_1.buildPageMetadata; } });
+Object.defineProperty(exports, "buildSitemapEntries", { enumerable: true, get: function () { return seo_1.buildSitemapEntries; } });

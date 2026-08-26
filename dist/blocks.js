@@ -23,11 +23,27 @@ const utils_1 = require("./utils");
 function resolveHref(href, ctx) {
     return href.startsWith("/") ? ctx.pageUrl(href) : href;
 }
+function asHeroSlides(value, ctx) {
+    return (0, utils_1.asArray)(value).flatMap((raw) => {
+        if (!(0, utils_1.isRecord)(raw))
+            return [];
+        const imageKey = (0, utils_1.asNonEmptyString)(raw.image);
+        if (imageKey === null)
+            return [];
+        return [
+            {
+                imageUrl: ctx.imageUrl(imageKey),
+                imageAlt: (0, utils_1.asNonEmptyString)(raw.imageAlt) ?? "",
+            },
+        ];
+    });
+}
 function renderHeroBlock(props, ctx) {
     const heading = (0, utils_1.asNonEmptyString)(props.heading);
     if (heading === null)
         return null;
     const imageKey = (0, utils_1.asNonEmptyString)(props.image);
+    const slides = asHeroSlides(props.slides, ctx);
     const heroProps = {
         heading,
         eyebrow: (0, utils_1.asNonEmptyString)(props.eyebrow) ?? undefined,
@@ -35,8 +51,10 @@ function renderHeroBlock(props, ctx) {
         body: (0, utils_1.asNonEmptyString)(props.body) ?? undefined,
         imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined,
         imageAlt: (0, utils_1.asNonEmptyString)(props.imageAlt) ?? undefined,
+        slides: slides.length > 0 ? slides : undefined,
         cta: resolveCta((0, utils_1.asCta)(props.cta), ctx) ?? undefined,
         headingClassName: ctx.headingClassName,
+        variant: props.variant === "carousel" ? "carousel" : "subpage",
     };
     return (0, jsx_runtime_1.jsx)(Hero_1.Hero, { ...heroProps });
 }
@@ -68,16 +86,24 @@ function renderFeatureGridBlock(props, ctx) {
     const items = asFeatureGridItems(props.items, ctx);
     if (items.length === 0)
         return null;
-    return (0, jsx_runtime_1.jsx)(FeatureGrid_1.FeatureGrid, { items: items, headingClassName: ctx.headingClassName });
+    const variant = props.variant === "solid" ? "solid" : "card";
+    return ((0, jsx_runtime_1.jsx)(FeatureGrid_1.FeatureGrid, { items: items, headingClassName: ctx.headingClassName, variant: variant }));
 }
 function renderCalloutBlock(props, ctx) {
     const heading = (0, utils_1.asNonEmptyString)(props.heading);
     const body = (0, utils_1.asNonEmptyString)(props.body);
-    const cta = resolveCta((0, utils_1.asCta)(props.cta), ctx);
-    if (heading === null || body === null || cta === null)
+    if (heading === null || body === null)
         return null;
+    // `cta` is OPTIONAL -- the reference site's own "Stay in touch" callout
+    // has no button at all. `asCta`/`resolveCta` return null on a missing
+    // prop, which used to mean "skip the whole block"; now it means "render
+    // without a button."
+    const rawCta = props.cta;
+    const cta = rawCta === undefined ? null : resolveCta((0, utils_1.asCta)(rawCta), ctx);
     const imageKey = (0, utils_1.asNonEmptyString)(props.image);
-    return ((0, jsx_runtime_1.jsx)(Callout_1.Callout, { heading: heading, body: body, cta: cta, imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined, imageAlt: (0, utils_1.asNonEmptyString)(props.imageAlt) ?? undefined, headingClassName: ctx.headingClassName }));
+    const variant = props.variant === "inset" ? "inset" : "split";
+    const imageSide = props.imageSide === "right" ? "right" : "left";
+    return ((0, jsx_runtime_1.jsx)(Callout_1.Callout, { heading: heading, body: body, cta: cta ?? undefined, imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined, imageAlt: (0, utils_1.asNonEmptyString)(props.imageAlt) ?? undefined, headingClassName: ctx.headingClassName, variant: variant, imageSide: imageSide, background: variant === "inset" ? (0, utils_1.asHexColor)(props.background) ?? undefined : undefined, headingColor: (0, utils_1.asHexColor)(props.headingColor) ?? undefined }));
 }
 function renderServiceTimesBlock(_props, ctx) {
     const serviceTimes = ctx.profile?.serviceTimes ?? [];
@@ -208,7 +234,8 @@ function renderProseBlock(props, ctx) {
     const body = (0, utils_1.asString)(props.body);
     if (body === null || body.trim().length === 0)
         return null;
-    return (0, jsx_runtime_1.jsx)(Prose_1.Prose, { body: body, headingClassName: ctx.headingClassName });
+    const columns = typeof props.columns === "number" ? props.columns : undefined;
+    return ((0, jsx_runtime_1.jsx)(Prose_1.Prose, { body: body, headingClassName: ctx.headingClassName, columns: columns, headingColor: (0, utils_1.asHexColor)(props.headingColor) ?? undefined }));
 }
 exports.BLOCK_REGISTRY = {
     hero: renderHeroBlock,

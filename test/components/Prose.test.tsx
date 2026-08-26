@@ -70,4 +70,34 @@ describe("Prose", () => {
     expect(container.querySelector("img")).toBeNull();
     expect(container.querySelector("h2")?.textContent).toBe("<img src=x onerror=alert(1)>");
   });
+
+  it("renders a `---` line as a real <hr>, not a heading or paragraph", () => {
+    const { container } = render(
+      <Prose body={"### How to borrow\n\nCall us.\n\n---\n\n### Our process\n\nWe sanitize items."} />,
+    );
+    const hrs = container.querySelectorAll("hr");
+    expect(hrs.length).toBe(1);
+    // The rule is a sibling between the two sections, not swallowed into
+    // either paragraph or heading text.
+    expect(container.textContent).not.toContain("---");
+  });
+
+  it("stamps data-columns only for the 2/3 values renderProseBlock allows, not arbitrary numbers", () => {
+    const two = render(<Prose body="x" columns={2} />);
+    expect(two.container.querySelector('[data-block="prose"]')?.getAttribute("data-columns")).toBe(
+      "2",
+    );
+    const bogus = render(<Prose body="x" columns={5} />);
+    expect(
+      bogus.container.querySelector('[data-block="prose"]')?.hasAttribute("data-columns"),
+    ).toBe(false);
+  });
+
+  it("applies headingColor as the --md-heading-color custom property, not inline element color", () => {
+    const { container } = render(<Prose body="## Heading" headingColor="#42714f" />);
+    const el = container.querySelector('[data-block="prose"]') as HTMLElement;
+    expect(el.style.getPropertyValue("--md-heading-color")).toBe("#42714f");
+    // The heading itself carries no inline color -- CSS reads the variable.
+    expect(container.querySelector("h2")?.getAttribute("style")).toBeNull();
+  });
 });
