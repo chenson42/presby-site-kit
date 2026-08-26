@@ -301,9 +301,17 @@
  * viewport, e.g. the reference's "Need medical equipment?" section) -- the
  * hero is NOT. The reference's own carousel sits inside the normal
  * content-width container with clear side margins and rounded corners on
- * every edge; it was wrongly lumped into this same full-bleed exemption. */
+ * every edge; it was wrongly lumped into this same full-bleed exemption.
+ *
+ * The nav bar is full-bleed too -- confirmed via the reference's own
+ * `#header` element (left: 0, width: equal to the full viewport). Its
+ * INNER content (logo, links) still constrains to the site's own content
+ * width via [data-slot="bar"]'s own max-width + auto margins (below) --
+ * only the bar's background/border should reach the viewport edge, the
+ * same two-layer shape the footer already uses for its own dark band. */
 .presby-site > [data-block="callout"][data-variant="inset"],
-.presby-site > [data-block="footer"] {
+.presby-site > [data-block="footer"],
+.presby-site > [data-block="nav"] {
   max-width: none;
 }
 
@@ -525,14 +533,34 @@
   padding: 2rem;
 }
 
+/* A hidden full-bleed "ghost image" layer, not a visible top image (that's
+ * the "card" variant's own img rule above) -- the reference's own
+ * .card-item .image-wrapper: absolutely positioned under the content,
+ * invisible until hover, and even then only ever at opacity: 0.3 so the
+ * tile's solid color keeps dominating. Confirmed via the reference's own
+ * compiled CSS (.section-cards .cards-grid[data-card-pos="background"]
+ * .image-wrapper), since this reveal is invisible to a static screenshot. */
 .presby-site [data-block="feature-grid"][data-variant="solid"] li img {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  height: 100%;
   object-fit: cover;
   margin: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+}
+
+.presby-site [data-block="feature-grid"][data-variant="solid"] li:hover img {
+  opacity: 0.3;
+  visibility: visible;
 }
 
 .presby-site [data-block="feature-grid"][data-variant="solid"] li [data-slot="content"] {
+  position: relative;
+  z-index: 1;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -554,6 +582,7 @@
   height: 1rem;
   margin-top: auto;
   position: relative;
+  z-index: 1;
 }
 
 .presby-site [data-block="feature-grid"][data-variant="solid"] li [data-slot="arrow"]::before,

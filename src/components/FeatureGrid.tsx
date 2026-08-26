@@ -19,9 +19,14 @@ export interface FeatureGridProps {
    * `"solid"`: a full-bleed color card (the reference site's own
    * "Worship / Music / Service / Connection" tiles) -- title and body
    * anchor to the TOP, and an arrow renders alone at the BOTTOM
-   * (`margin-top: auto` in styles.css), never the reverse. No image is
-   * rendered in this variant even if `imageUrl` is set -- the tile's
-   * whole surface IS the color.
+   * (`margin-top: auto` in styles.css), never the reverse. `imageUrl`, if
+   * set, still renders -- but as a hidden full-bleed background layer that
+   * only fades in at low opacity on hover (the reference's own
+   * `.card-item .image-wrapper` "ghost image" treatment: opacity: 0 ->
+   * visible, transition: 0.3s, the photo itself capped at opacity: 0.3 so
+   * the tile's solid color still dominates). Confirmed via the reference's
+   * own compiled CSS, not visible in a static screenshot since it's a
+   * hover-only reveal.
    */
   variant?: "card" | "solid";
 }
@@ -41,7 +46,7 @@ export function FeatureGrid({
           // eslint-disable-next-line react/no-array-index-key
           <li key={index}>
             <a href={item.href}>
-              {variant === "card" && item.imageUrl ? (
+              {item.imageUrl ? (
                 <img src={item.imageUrl} alt={item.imageAlt ?? ""} />
               ) : null}
               <div data-slot="content">
