@@ -824,6 +824,12 @@
 }
 
 .presby-site [data-block="callout"] h2 {
+  /* Was unset (falling back to the base h2 rule's font-weight-only
+   * declaration, ~16px) -- the reference's own callout headings ("Need
+   * medical equipment?", "Stay in touch") measure a real 54px, IDENTICAL
+   * to sermon-embed's own h2 rule just above, which already had this
+   * right. Matched exactly rather than reinvented. */
+  font-size: 3.375rem; /* 54px */
   margin: 0 0 0.5rem;
 }
 
