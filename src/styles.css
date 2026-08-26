@@ -694,8 +694,10 @@
   grid-template-columns: 1fr;
   align-items: center;
   gap: 2rem;
-  background: var(--secondary);
-  color: var(--secondary-foreground);
+  /* No background/color here -- the reference's own split-variant sections
+   * sit directly on the page background with the ambient ink color, no
+   * card/band treatment at all. Only [data-variant="inset"] (below) is a
+   * genuine colored band, and it already sets its own background + color. */
 }
 
 .presby-site [data-block="callout"]:has([data-slot="image"]) {
@@ -744,7 +746,12 @@
   opacity: 0.85;
 }
 
-.presby-site [data-block="callout"] a {
+/* Scoped to the CTA link specifically (a direct child of [data-slot="content"],
+ * sibling to the heading/body) -- NOT every anchor in the callout. An
+ * unscoped `a` selector here also caught inline markdown links inside the
+ * body (e.g. "view our donation guide (PDF)"), turning ordinary prose
+ * links into duplicate pill buttons the reference never has. */
+.presby-site [data-block="callout"] [data-slot="content"] > a {
   display: inline-block;
   background: var(--primary);
   color: var(--primary-foreground);

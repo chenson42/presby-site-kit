@@ -118,7 +118,11 @@ export function Hero({
           </div>
         ) : null}
       </div>
-      {tagline ? <p data-slot="tagline">{tagline}</p> : null}
+      {/* The reference's own markup: this is a real <h5>, in its own
+       * section below the hero -- not a paragraph. Verified against the
+       * real page's compiled HTML (<div class="section-text-block">
+       * <h5>Faith and friendships grow here.</h5></div>). */}
+      {tagline ? <h5 data-slot="tagline">{tagline}</h5> : null}
     </section>
   );
 }
