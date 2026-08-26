@@ -196,7 +196,7 @@
 
 .presby-site [data-block="nav"] li[data-highlight="true"] > a {
   text-transform: none;
-  color: var(--primary-foreground);
+  color: #fff;
   background: var(--primary);
   padding: 0.6rem 1.5rem;
   border-radius: var(--site-button-radius);
@@ -204,10 +204,6 @@
 
 .presby-site [data-block="nav"] li[data-highlight="true"] > a::after {
   display: none;
-}
-
-.presby-site [data-block="nav"] li[data-highlight="true"] > a:hover {
-  opacity: 0.9;
 }
 
 /* The dropdown panel: white, no border/radius, a small shadow -- and a
@@ -306,7 +302,8 @@
  * hero is NOT. The reference's own carousel sits inside the normal
  * content-width container with clear side margins and rounded corners on
  * every edge; it was wrongly lumped into this same full-bleed exemption. */
-.presby-site > [data-block="callout"][data-variant="inset"] {
+.presby-site > [data-block="callout"][data-variant="inset"],
+.presby-site > [data-block="footer"] {
   max-width: none;
 }
 
@@ -405,15 +402,11 @@
   align-self: flex-start;
   display: inline-block;
   background: var(--primary);
-  color: var(--primary-foreground);
+  color: #fff;
   padding: 0.65rem 1.5rem;
   border-radius: var(--site-button-radius);
   font-weight: 600;
   text-decoration: none;
-}
-
-.presby-site [data-block="hero"] [data-slot="content"] > a:hover {
-  opacity: 0.9;
 }
 
 /* The tagline lives BELOW the hero band entirely, bottom-left aligned
@@ -592,12 +585,6 @@
   filter: brightness(1.05);
 }
 
-@media (max-width: 640px) {
-  .presby-site [data-block="feature-grid"][data-variant="solid"] li {
-    min-height: 0;
-  }
-}
-
 /* Image-top beige person cards -- overrides the shared grid/card rules
  * above rather than composing with them, because staff-list has two
  * requirements the shared rule can't satisfy at once:
@@ -630,7 +617,7 @@
   width: 100%;
   aspect-ratio: 5 / 7;
   object-fit: cover;
-  border-radius: 0;
+  border-radius: var(--site-image-radius);
   margin: 0 0 1rem;
 }
 
@@ -754,7 +741,7 @@
 .presby-site [data-block="callout"] [data-slot="content"] > a {
   display: inline-block;
   background: var(--primary);
-  color: var(--primary-foreground);
+  color: #fff;
   padding: 0.6rem 1.25rem;
   border-radius: var(--site-button-radius);
   font-weight: 600;
@@ -906,15 +893,11 @@
 .presby-site [data-block="donate-link"] {
   display: inline-block;
   background: var(--primary);
-  color: var(--primary-foreground);
+  color: #fff;
   padding: 0.6rem 1.25rem;
   border-radius: var(--site-radius);
   font-weight: 600;
   text-decoration: none;
-}
-
-.presby-site [data-block="donate-link"]:hover {
-  opacity: 0.9;
 }
 
 .presby-site [data-block="prose"] {
@@ -928,7 +911,12 @@
  * forces a column break -- see markdown.tsx's own RULE_RE comment -- so an
  * author controls exactly where the split falls. */
 .presby-site [data-block="prose"][data-columns] {
-  max-width: none;
+  /* Wider than the narrow 42rem single-column reading width -- NOT wider
+   * than the site's own content column. `max-width: none` here (the
+   * earlier bug) let this specific, higher-specificity selector beat the
+   * outer `.presby-site > [data-block]` width cap entirely, expanding a
+   * 2/3-column section all the way to the viewport edge with no gutter. */
+  max-width: var(--site-content-width);
   column-gap: 3rem;
 }
 
@@ -1051,6 +1039,13 @@
 .presby-site [data-block="footer"] [data-slot="footer-left"] [data-slot="footer-logo"] {
   height: 3rem;
   width: auto;
+  /* The reference ships a literal second, all-white SVG for the dark
+   * footer. Rather than requiring every org to upload a matching white
+   * variant of their own logo, force one from whatever single mark
+   * asset already exists: brightness(0) collapses it to solid black,
+   * invert(1) flips that to solid white -- a robust silhouette that
+   * works for any org's logo colors, no second upload ever needed. */
+  filter: brightness(0) invert(1);
   margin-bottom: 1.25rem;
 }
 
@@ -1091,7 +1086,7 @@
   display: inline-block;
   margin-top: 1.25rem;
   background: var(--primary);
-  color: var(--primary-foreground);
+  color: #fff;
   text-transform: uppercase;
   font-weight: 700;
   font-size: 0.8125rem;
@@ -1100,6 +1095,34 @@
   border-radius: var(--site-button-radius);
   text-decoration: none;
 }
+
+/* Buttons across the site share the reference's own hover treatment:
+ * darker on hover (its own CSS literally swaps teal for green). White
+ * text is fixed -- WCAG math confirmed the reference's own resting-state
+ * teal+white combination (#60a7a1/#fff) is 2.79:1, below AA on its own,
+ * but this is the reference's own deliberate, shipped, real-world design
+ * -- site-kit matches it rather than silently substituting presby's own
+ * platform-wide accessible-foreground pick (which stays fully in force
+ * for presby's OWN internal admin/portal UI, an entirely separate
+ * consumer of the same --primary-foreground token). brightness(), not a
+ * hardcoded hex, so the darken-on-hover effect is brand-agnostic --
+ * every future congregation's own --primary darkens the same way,
+ * without this template ever hardcoding one organization's color. */
+.presby-site [data-block="nav"] li[data-highlight="true"] > a,
+.presby-site [data-block="hero"] [data-slot="content"] > a,
+.presby-site [data-block="callout"] [data-slot="content"] > a,
+.presby-site [data-block="donate-link"],
+.presby-site [data-block="footer"] [data-slot="directions-button"] {
+  transition: filter 0.2s ease;
+}
+.presby-site [data-block="nav"] li[data-highlight="true"] > a:hover,
+.presby-site [data-block="hero"] [data-slot="content"] > a:hover,
+.presby-site [data-block="callout"] [data-slot="content"] > a:hover,
+.presby-site [data-block="donate-link"]:hover,
+.presby-site [data-block="footer"] [data-slot="directions-button"]:hover {
+  filter: brightness(0.85);
+}
+
 
 .presby-site [data-block="footer"] [data-slot="footer-nav-groups"] {
   display: contents;
