@@ -4,7 +4,7 @@ import { DonateLink } from "./components/DonateLink";
 import { EventList, type EventListEvent } from "./components/EventList";
 import { FeatureGrid, type FeatureGridItem } from "./components/FeatureGrid";
 import { Gallery, type GalleryImage } from "./components/Gallery";
-import { Hero, type HeroProps } from "./components/Hero";
+import { Hero, type HeroProps, type HeroSlide } from "./components/Hero";
 import { MinistryList, type MinistryListItem } from "./components/MinistryList";
 import { Prose } from "./components/Prose";
 import { ServiceTimes } from "./components/ServiceTimes";
@@ -57,6 +57,20 @@ function resolveHref(href: string, ctx: BlockRenderContext): string {
   return href.startsWith("/") ? ctx.pageUrl(href) : href;
 }
 
+function asHeroSlides(value: unknown, ctx: BlockRenderContext): HeroSlide[] {
+  return asArray(value).flatMap((raw) => {
+    if (!isRecord(raw)) return [];
+    const imageKey = asNonEmptyString(raw.image);
+    if (imageKey === null) return [];
+    return [
+      {
+        imageUrl: ctx.imageUrl(imageKey),
+        imageAlt: asNonEmptyString(raw.imageAlt) ?? "",
+      },
+    ];
+  });
+}
+
 function renderHeroBlock(
   props: Record<string, unknown>,
   ctx: BlockRenderContext,
@@ -64,6 +78,7 @@ function renderHeroBlock(
   const heading = asNonEmptyString(props.heading);
   if (heading === null) return null;
   const imageKey = asNonEmptyString(props.image);
+  const slides = asHeroSlides(props.slides, ctx);
   const heroProps: HeroProps = {
     heading,
     eyebrow: asNonEmptyString(props.eyebrow) ?? undefined,
@@ -71,8 +86,10 @@ function renderHeroBlock(
     body: asNonEmptyString(props.body) ?? undefined,
     imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined,
     imageAlt: asNonEmptyString(props.imageAlt) ?? undefined,
+    slides: slides.length > 0 ? slides : undefined,
     cta: resolveCta(asCta(props.cta), ctx) ?? undefined,
     headingClassName: ctx.headingClassName,
+    variant: props.variant === "carousel" ? "carousel" : "subpage",
   };
   return <Hero {...heroProps} />;
 }
