@@ -111,17 +111,29 @@ export interface RenderSiteBundleInput {
      */
     contactForm?: ReactElement;
     /**
-     * Generic, caller-supplied React elements keyed by an arbitrary slot name
-     * (e.g. "staffDirectory"). A `{"type": "liveSlot", "props": {"slot": "..."}}`
-     * content block looks its `slot` value up here and renders whatever
-     * element the caller placed there, or nothing if absent — this package
-     * never builds the element itself, the same "content is content,
-     * interactivity/data is the caller's job" boundary as `contactForm`.
-     * `contactForm` is NOT retrofitted onto this mechanism: it owns bespoke
-     * heading/intro/aside chrome a bare slot injector doesn't replicate, so
-     * the two shapes coexist by design rather than merging.
+     * Generic, caller-supplied resolver functions keyed by an arbitrary slot
+     * name (e.g. "staffDirectory"). A `{"type": "liveSlot", "props": {"slot":
+     * "...", "filter": {...}}}` content block looks its `slot` value up here
+     * and calls the resolver with that marker's own `filter` (defaulting to
+     * `{}` when absent), rendering whatever element it returns, or nothing if
+     * the slot name is absent — this package never builds the element itself,
+     * the same "content is content, interactivity/data is the caller's job"
+     * boundary as `contactForm`. `contactForm` is NOT retrofitted onto this
+     * mechanism: it owns bespoke heading/intro/aside chrome a bare slot
+     * injector doesn't replicate, so the two shapes coexist by design rather
+     * than merging.
+     *
+     * BREAKING as of v4.0.0 (was `Record<string, ReactElement>`): a resolver
+     * function, not a pre-built element, so the SAME slot name can render a
+     * different filtered subset per marker instance — each marker's own
+     * `filter` is resolved lazily, exactly where that marker is encountered,
+     * with zero pre-pass over the bundle and zero key-collision risk between
+     * two same-named markers with different filters (DECISION-132). A
+     * resolver closure built in `page.tsx` may only close over route-static
+     * values (e.g. `slug`) — never `request`/`headers()`/`cookies()` — or it
+     * reintroduces a visitor-facing, runtime-queryable filter.
      */
-    liveSlots?: Record<string, ReactElement>;
+    liveSlots?: Record<string, (filter: Record<string, unknown>) => ReactElement | null>;
 }
 /**
  * Renders the page in `input.pages` whose `path` matches
@@ -160,6 +172,8 @@ export type { MinistryListItem, MinistryListProps } from "./components/MinistryL
 export { Nav } from "./components/Nav";
 export { groupEntries } from "./nav-grouping";
 export type { NavProps } from "./components/Nav";
+export { PersonCard } from "./components/PersonCard";
+export type { PersonCardProps } from "./components/PersonCard";
 export { Prose } from "./components/Prose";
 export type { ProseProps } from "./components/Prose";
 export { ServiceTimes } from "./components/ServiceTimes";

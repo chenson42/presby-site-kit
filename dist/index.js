@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.buildSitemapEntries = exports.buildPageMetadata = exports.ValuesGrid = exports.StaffList = exports.SermonEmbed = exports.ServiceTimes = exports.Prose = exports.groupEntries = exports.Nav = exports.MinistryList = exports.Hero = exports.Gallery = exports.Footer = exports.FeatureGrid = exports.EventList = exports.DonateLink = exports.Callout = exports.ALLOWED_BLOCK_TYPES = void 0;
+exports.buildSitemapEntries = exports.buildPageMetadata = exports.ValuesGrid = exports.StaffList = exports.SermonEmbed = exports.ServiceTimes = exports.Prose = exports.PersonCard = exports.groupEntries = exports.Nav = exports.MinistryList = exports.Hero = exports.Gallery = exports.Footer = exports.FeatureGrid = exports.EventList = exports.DonateLink = exports.Callout = exports.ALLOWED_BLOCK_TYPES = void 0;
 exports.renderSiteBundle = renderSiteBundle;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
@@ -175,6 +175,8 @@ var Nav_2 = require("./components/Nav");
 Object.defineProperty(exports, "Nav", { enumerable: true, get: function () { return Nav_2.Nav; } });
 var nav_grouping_1 = require("./nav-grouping");
 Object.defineProperty(exports, "groupEntries", { enumerable: true, get: function () { return nav_grouping_1.groupEntries; } });
+var PersonCard_1 = require("./components/PersonCard");
+Object.defineProperty(exports, "PersonCard", { enumerable: true, get: function () { return PersonCard_1.PersonCard; } });
 var Prose_1 = require("./components/Prose");
 Object.defineProperty(exports, "Prose", { enumerable: true, get: function () { return Prose_1.Prose; } });
 var ServiceTimes_1 = require("./components/ServiceTimes");

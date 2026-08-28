@@ -266,20 +266,28 @@ function renderContactFormBlock(props, ctx) {
     return ((0, jsx_runtime_1.jsxs)("section", { "data-block": "contact-form", "data-has-aside": aside && aside.trim().length > 0 ? "true" : undefined, children: [(0, jsx_runtime_1.jsxs)("div", { "data-slot": "main", children: [(0, jsx_runtime_1.jsx)("h2", { className: ctx.headingClassName, style: headingColor ? { color: headingColor } : undefined, children: heading }), intro ? (0, jsx_runtime_1.jsx)("p", { "data-slot": "intro", children: intro }) : null, ctx.contactForm] }), aside && aside.trim().length > 0 ? ((0, jsx_runtime_1.jsx)("div", { "data-slot": "aside", children: (0, jsx_runtime_1.jsx)(Prose_1.Prose, { body: aside, headingClassName: ctx.headingClassName }) })) : null] }));
 }
 /**
- * Renders whatever element the caller placed at `props.slot` in
- * `ctx.liveSlots`, or nothing if the slot name is missing/unrecognized or
- * the caller never wired one up (e.g. a unit test rendering outside
- * presby's own runtime) — the same skip-don't-throw discipline as every
- * other block renderer. `props` is `unknown` rather than the usual
- * `Record<string, unknown>` because this is the one block whose entire
- * job is looking a string up in a caller-supplied map, so the narrowing
- * happens inline rather than relying on `extractBlocks`' own upstream
- * normalization.
+ * Calls the resolver function the caller placed at `props.slot` in
+ * `ctx.liveSlots`, with this marker's own `props.filter` (defaulting to
+ * `{}` when absent/malformed), and renders whatever it returns — or
+ * nothing if the slot name is missing/unrecognized or the caller never
+ * wired one up (e.g. a unit test rendering outside presby's own runtime) —
+ * the same skip-don't-throw discipline as every other block renderer.
+ * `props` is `unknown` rather than the usual `Record<string, unknown>`
+ * because this is the one block whose entire job is looking a string up
+ * in a caller-supplied map, so the narrowing happens inline rather than
+ * relying on `extractBlocks`' own upstream normalization.
+ *
+ * BREAKING as of v4.0.0: `ctx.liveSlots[props.slot]` is a resolver
+ * function, not a pre-built element — see BlockRenderContext/
+ * RenderSiteBundleInput's own `liveSlots` docs for the full rationale.
  */
 function renderLiveSlotBlock(props, ctx) {
     if (!(0, utils_1.isRecord)(props) || typeof props.slot !== "string")
         return null;
-    return ctx.liveSlots?.[props.slot] ?? null;
+    const resolver = ctx.liveSlots?.[props.slot];
+    if (!resolver)
+        return null;
+    return resolver((0, utils_1.isRecord)(props.filter) ? props.filter : {});
 }
 exports.BLOCK_REGISTRY = {
     hero: renderHeroBlock,

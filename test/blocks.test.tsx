@@ -225,7 +225,7 @@ describe("individual block renderers — malformed props render nothing, not a t
   it("liveSlot: renders nothing when the slot name isn't present in ctx.liveSlots", () => {
     const ctxWithSlots: BlockRenderContext = {
       ...baseCtx,
-      liveSlots: { staffDirectory: <div data-testid="the-real-directory" /> },
+      liveSlots: { staffDirectory: () => <div data-testid="the-real-directory" /> },
     };
     expect(BLOCK_REGISTRY.liveSlot({ slot: "somethingElse" }, ctxWithSlots)).toBeNull();
   });
@@ -233,21 +233,75 @@ describe("individual block renderers — malformed props render nothing, not a t
   it("liveSlot: missing/non-string `slot` renders null, not a throw", () => {
     const ctxWithSlots: BlockRenderContext = {
       ...baseCtx,
-      liveSlots: { staffDirectory: <div data-testid="the-real-directory" /> },
+      liveSlots: { staffDirectory: () => <div data-testid="the-real-directory" /> },
     };
     expect(BLOCK_REGISTRY.liveSlot({}, ctxWithSlots)).toBeNull();
     expect(BLOCK_REGISTRY.liveSlot({ slot: 42 }, ctxWithSlots)).toBeNull();
   });
 
-  it("liveSlot: renders the caller's real element from ctx.liveSlots by name", () => {
+  it("liveSlot: calls the caller's resolver from ctx.liveSlots by name with {} when no filter is given", () => {
+    let receivedFilter: Record<string, unknown> | null = null;
     const ctxWithSlots: BlockRenderContext = {
       ...baseCtx,
-      liveSlots: { staffDirectory: <div data-testid="the-real-directory" /> },
+      liveSlots: {
+        staffDirectory: (filter) => {
+          receivedFilter = filter;
+          return <div data-testid="the-real-directory" />;
+        },
+      },
     };
     const { getByTestId } = render(
       <>{BLOCK_REGISTRY.liveSlot({ slot: "staffDirectory" }, ctxWithSlots)}</>,
     );
     expect(getByTestId("the-real-directory")).toBeTruthy();
+    expect(receivedFilter).toEqual({});
+  });
+
+  it("liveSlot: passes the marker's own `filter` prop through to the resolver", () => {
+    let receivedFilter: Record<string, unknown> | null = null;
+    const ctxWithSlots: BlockRenderContext = {
+      ...baseCtx,
+      liveSlots: {
+        staffDirectory: (filter) => {
+          receivedFilter = filter;
+          return <div data-testid="the-real-directory" />;
+        },
+      },
+    };
+    render(
+      <>
+        {BLOCK_REGISTRY.liveSlot(
+          { slot: "staffDirectory", filter: { kind: "staff", hasPriority: true } },
+          ctxWithSlots,
+        )}
+      </>,
+    );
+    expect(receivedFilter).toEqual({ kind: "staff", hasPriority: true });
+  });
+
+  it("liveSlot: a non-record `filter` falls back to {} rather than being passed through", () => {
+    let receivedFilter: Record<string, unknown> | null = null;
+    const ctxWithSlots: BlockRenderContext = {
+      ...baseCtx,
+      liveSlots: {
+        staffDirectory: (filter) => {
+          receivedFilter = filter;
+          return <div data-testid="the-real-directory" />;
+        },
+      },
+    };
+    render(
+      <>{BLOCK_REGISTRY.liveSlot({ slot: "staffDirectory", filter: "not-a-record" }, ctxWithSlots)}</>,
+    );
+    expect(receivedFilter).toEqual({});
+  });
+
+  it("liveSlot: renders null, not a throw, when the resolver itself returns null", () => {
+    const ctxWithSlots: BlockRenderContext = {
+      ...baseCtx,
+      liveSlots: { staffDirectory: () => null },
+    };
+    expect(BLOCK_REGISTRY.liveSlot({ slot: "staffDirectory" }, ctxWithSlots)).toBeNull();
   });
 
   it("featureGrid: an item's optional image manifestKey resolves through ctx.imageUrl", () => {
