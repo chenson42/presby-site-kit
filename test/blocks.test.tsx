@@ -146,6 +146,17 @@ describe("individual block renderers — malformed props render nothing, not a t
     expect(BLOCK_REGISTRY.prose({ body: "Hello" }, baseCtx)).not.toBeNull();
   });
 
+  it("prose: fullWidth: true threads through to data-full-width; anything else does not set it", () => {
+    const wide = render(<>{BLOCK_REGISTRY.prose({ body: "Hello", fullWidth: true }, baseCtx)}</>);
+    expect(
+      wide.container.querySelector('[data-block="prose"]')?.getAttribute("data-full-width"),
+    ).toBe("true");
+    const narrow = render(<>{BLOCK_REGISTRY.prose({ body: "Hello", fullWidth: "true" }, baseCtx)}</>);
+    expect(
+      narrow.container.querySelector('[data-block="prose"]')?.hasAttribute("data-full-width"),
+    ).toBe(false);
+  });
+
   it("donateLink: a javascript: href is rejected, not sanitized-and-kept", () => {
     expect(
       BLOCK_REGISTRY.donateLink({ label: "Give", href: "javascript:alert(1)" }, baseCtx),

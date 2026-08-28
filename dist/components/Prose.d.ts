@@ -22,5 +22,20 @@ export interface ProseProps {
      * markdown output stays style-free; unset inherits the ink color.
      */
     headingColor?: string;
+    /**
+     * Opts a single-column prose block out of the default 42rem
+     * narrow-reading-column treatment, rendering it at the same full content
+     * width as every other top-level block instead. For heading+description
+     * pairs authored as short section intros between full-width sibling
+     * blocks (e.g. a committee's name + one-sentence description sitting
+     * between StaffList grids) rather than genuine long-form body copy --
+     * confirmed against the reference's own committees page, where each
+     * heading/paragraph pair starts at the same left edge as the page H1 and
+     * the staff photo grids, not indented into a centered narrow column.
+     * Distinct from `columns` (2/3 side-by-side text columns): this is a
+     * width-only opt-out for a single column of text, not a column-count
+     * change, so it does not force `columns` to be set.
+     */
+    fullWidth?: boolean;
 }
-export declare function Prose({ body, headingClassName, columns, headingColor, }: ProseProps): ReactElement;
+export declare function Prose({ body, headingClassName, columns, headingColor, fullWidth, }: ProseProps): ReactElement;

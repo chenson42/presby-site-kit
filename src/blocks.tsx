@@ -349,12 +349,14 @@ function renderProseBlock(
   const body = asString(props.body);
   if (body === null || body.trim().length === 0) return null;
   const columns = typeof props.columns === "number" ? props.columns : undefined;
+  const fullWidth = props.fullWidth === true;
   return (
     <Prose
       body={body}
       headingClassName={ctx.headingClassName}
       columns={columns}
       headingColor={asHexColor(props.headingColor) ?? undefined}
+      fullWidth={fullWidth}
     />
   );
 }

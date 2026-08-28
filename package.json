@@ -1,6 +1,6 @@
 {
   "name": "presby-site-kit",
-  "version": "3.5.0",
+  "version": "3.6.0",
   "description": "presby's shared public-site rendering shell: renderSiteBundle() turns a normalized content bundle (typed content blocks + an org profile + brand tokens) into JSX, rendered against a fixed, allowlisted component library (Hero, FeatureGrid, Callout, ServiceTimes, StaffList, ValuesGrid, MinistryList, EventList, SermonEmbed, DonateLink, Prose, Gallery, Nav, plus Footer chrome). An unrecognized block type is skipped, never executed — a content repo is a lower trust tier than presby's own code. See DESIGN-v1-components.md.",
   "license": "MIT",
   "private": false,

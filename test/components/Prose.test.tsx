@@ -93,6 +93,17 @@ describe("Prose", () => {
     ).toBe(false);
   });
 
+  it("stamps data-full-width only when fullWidth is explicitly true", () => {
+    const wide = render(<Prose body="x" fullWidth />);
+    expect(
+      wide.container.querySelector('[data-block="prose"]')?.getAttribute("data-full-width"),
+    ).toBe("true");
+    const narrow = render(<Prose body="x" />);
+    expect(
+      narrow.container.querySelector('[data-block="prose"]')?.hasAttribute("data-full-width"),
+    ).toBe(false);
+  });
+
   it("applies headingColor as the --md-heading-color custom property, not inline element color", () => {
     const { container } = render(<Prose body="## Heading" headingColor="#42714f" />);
     const el = container.querySelector('[data-block="prose"]') as HTMLElement;

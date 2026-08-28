@@ -247,7 +247,8 @@ function renderProseBlock(props, ctx) {
     if (body === null || body.trim().length === 0)
         return null;
     const columns = typeof props.columns === "number" ? props.columns : undefined;
-    return ((0, jsx_runtime_1.jsx)(Prose_1.Prose, { body: body, headingClassName: ctx.headingClassName, columns: columns, headingColor: (0, utils_1.asHexColor)(props.headingColor) ?? undefined }));
+    const fullWidth = props.fullWidth === true;
+    return ((0, jsx_runtime_1.jsx)(Prose_1.Prose, { body: body, headingClassName: ctx.headingClassName, columns: columns, headingColor: (0, utils_1.asHexColor)(props.headingColor) ?? undefined, fullWidth: fullWidth }));
 }
 function renderContactFormBlock(props, ctx) {
     // No `ctx.contactForm` means the caller never wired one up (or this

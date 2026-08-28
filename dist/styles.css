@@ -1111,6 +1111,21 @@
   max-width: 42rem;
 }
 
+/* Full-width opt-out (v3.6.0) -- for a heading+description prose block
+ * authored as a short section intro between full-width sibling blocks
+ * (e.g. a committee's name + one-sentence description sitting between
+ * StaffList grids on /committees), not genuine long-form body copy. The
+ * reference's own committees page starts each such heading and paragraph
+ * at the same left edge as the page H1 and the staff photo grids -- not
+ * indented into the narrow centered reading column below. Must come after
+ * the 42rem rule above (same specificity; source order decides) and is
+ * intentionally separate from `[data-columns]`, which also widens to full
+ * content width but additionally forces multi-column layout -- this is a
+ * width-only opt-out for ordinary single-column text. */
+.presby-site [data-block="prose"][data-full-width] {
+  max-width: var(--site-content-width);
+}
+
 /* Multi-column layout (v4.1.0) -- left-anchored, not width-constrained to
  * 42rem like the single-column default, since a 2-3 column spread needs
  * the full content width to read as columns rather than a narrow stack. A
