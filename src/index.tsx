@@ -119,6 +119,18 @@ export interface RenderSiteBundleInput {
    * heading/intro/aside chrome; a page with no such block never sees it.
    */
   contactForm?: ReactElement;
+  /**
+   * Generic, caller-supplied React elements keyed by an arbitrary slot name
+   * (e.g. "staffDirectory"). A `{"type": "liveSlot", "props": {"slot": "..."}}`
+   * content block looks its `slot` value up here and renders whatever
+   * element the caller placed there, or nothing if absent — this package
+   * never builds the element itself, the same "content is content,
+   * interactivity/data is the caller's job" boundary as `contactForm`.
+   * `contactForm` is NOT retrofitted onto this mechanism: it owns bespoke
+   * heading/intro/aside chrome a bare slot injector doesn't replicate, so
+   * the two shapes coexist by design rather than merging.
+   */
+  liveSlots?: Record<string, ReactElement>;
 }
 
 function isContentBlockShape(value: unknown): value is { type: string; props: unknown } {
@@ -237,6 +249,7 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
     profile: input.profile,
     headingClassName: input.brand?.fontPairing.headingClassName,
     contactForm: input.contactForm,
+    liveSlots: input.liveSlots,
   };
 
   const blocks = extractBlocks(page.mdxAst);

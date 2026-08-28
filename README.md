@@ -7,6 +7,31 @@ one entry point, `renderSiteBundle()`, to turn a normalized content bundle
 repo's own CI) into JSX — rendered inside presby's own server process, not a
 per-org deployment.
 
+## Status: v3.5.0
+
+**v3.5.0 adds a generic `liveSlots` injection mechanism** — the piece
+presby's public-staff-directory feature needs and the first block type
+whose content isn't fully described by the content repo's own MDX.
+`RenderSiteBundleInput` gains an optional
+`liveSlots?: Record<string, ReactElement>` field, threaded into
+`BlockRenderContext` the same way `contactForm` already is. A
+`{ type: "liveSlot", props: { slot: "..." } }` content block looks its
+`slot` name up in `ctx.liveSlots` and renders whatever element the caller
+placed there, or nothing if the slot is absent — this package still never
+builds the element itself or reaches into presby's database; it only
+positions a pre-built element the caller (presby) constructed, the same
+"content is content, data/interactivity is the caller's job" boundary
+`contactForm` already established.
+
+**`contactForm` is NOT retrofitted onto this shape.** The two mechanisms
+were deliberately kept distinct: `contactForm` owns bespoke
+heading/intro/aside chrome around a single, well-known element, while
+`liveSlot` is a bare, unopinionated injector keyed by an arbitrary slot
+name. Collapsing them would have forced `contactForm`'s one-off chrome
+onto every future live-data block. See presby's own
+`docs/work-log/2026-08-27-public-staff-directory.md` for the design this
+release fulfills.
+
 ## Status: v3.4.0
 
 **v3.4.0 closes two real gaps found migrating a real congregation's real

@@ -45,6 +45,11 @@ export interface BlockRenderContext {
    * RenderSiteBundleInput's own `contactForm` field in ../index.tsx for
    * the full "this package renders no forms of its own" rationale. */
   contactForm?: ReactElement;
+  /** Caller-supplied elements keyed by slot name — see
+   * RenderSiteBundleInput's own `liveSlots` field in ../index.tsx.
+   * Deliberately a separate, bare-injection mechanism from `contactForm`,
+   * not a generalization of it. */
+  liveSlots?: Record<string, ReactElement>;
 }
 
 type BlockRenderer = (
@@ -389,6 +394,25 @@ function renderContactFormBlock(
   );
 }
 
+/**
+ * Renders whatever element the caller placed at `props.slot` in
+ * `ctx.liveSlots`, or nothing if the slot name is missing/unrecognized or
+ * the caller never wired one up (e.g. a unit test rendering outside
+ * presby's own runtime) — the same skip-don't-throw discipline as every
+ * other block renderer. `props` is `unknown` rather than the usual
+ * `Record<string, unknown>` because this is the one block whose entire
+ * job is looking a string up in a caller-supplied map, so the narrowing
+ * happens inline rather than relying on `extractBlocks`' own upstream
+ * normalization.
+ */
+function renderLiveSlotBlock(
+  props: unknown,
+  ctx: BlockRenderContext,
+): ReactElement | null {
+  if (!isRecord(props) || typeof props.slot !== "string") return null;
+  return ctx.liveSlots?.[props.slot] ?? null;
+}
+
 export const BLOCK_REGISTRY: Record<string, BlockRenderer> = {
   hero: renderHeroBlock,
   featureGrid: renderFeatureGridBlock,
@@ -403,6 +427,7 @@ export const BLOCK_REGISTRY: Record<string, BlockRenderer> = {
   prose: renderProseBlock,
   gallery: renderGalleryBlock,
   contactForm: renderContactFormBlock,
+  liveSlot: renderLiveSlotBlock,
 };
 
 /** Every block `type` this release recognizes — anything else is skipped

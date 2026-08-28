@@ -22,6 +22,11 @@ export interface BlockRenderContext {
      * RenderSiteBundleInput's own `contactForm` field in ../index.tsx for
      * the full "this package renders no forms of its own" rationale. */
     contactForm?: ReactElement;
+    /** Caller-supplied elements keyed by slot name — see
+     * RenderSiteBundleInput's own `liveSlots` field in ../index.tsx.
+     * Deliberately a separate, bare-injection mechanism from `contactForm`,
+     * not a generalization of it. */
+    liveSlots?: Record<string, ReactElement>;
 }
 type BlockRenderer = (props: Record<string, unknown>, ctx: BlockRenderContext) => ReactElement | null;
 export declare const BLOCK_REGISTRY: Record<string, BlockRenderer>;

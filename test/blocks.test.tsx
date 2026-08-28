@@ -10,7 +10,7 @@ const baseCtx: BlockRenderContext = {
 };
 
 describe("ALLOWED_BLOCK_TYPES / BLOCK_REGISTRY", () => {
-  it("lists the design note's eleven block types plus gallery and contactForm", () => {
+  it("lists the design note's eleven block types plus gallery, contactForm, and liveSlot", () => {
     expect([...ALLOWED_BLOCK_TYPES].sort()).toEqual(
       [
         "callout",
@@ -20,6 +20,7 @@ describe("ALLOWED_BLOCK_TYPES / BLOCK_REGISTRY", () => {
         "featureGrid",
         "gallery",
         "hero",
+        "liveSlot",
         "ministryList",
         "prose",
         "sermonEmbed",
@@ -204,6 +205,38 @@ describe("individual block renderers — malformed props render nothing, not a t
         .querySelector('[data-block="contact-form"]')
         ?.hasAttribute("data-has-aside"),
     ).toBe(false);
+  });
+
+  it("liveSlot: renders nothing when ctx.liveSlots is never wired up, even with a valid slot name", () => {
+    expect(BLOCK_REGISTRY.liveSlot({ slot: "staffDirectory" }, baseCtx)).toBeNull();
+  });
+
+  it("liveSlot: renders nothing when the slot name isn't present in ctx.liveSlots", () => {
+    const ctxWithSlots: BlockRenderContext = {
+      ...baseCtx,
+      liveSlots: { staffDirectory: <div data-testid="the-real-directory" /> },
+    };
+    expect(BLOCK_REGISTRY.liveSlot({ slot: "somethingElse" }, ctxWithSlots)).toBeNull();
+  });
+
+  it("liveSlot: missing/non-string `slot` renders null, not a throw", () => {
+    const ctxWithSlots: BlockRenderContext = {
+      ...baseCtx,
+      liveSlots: { staffDirectory: <div data-testid="the-real-directory" /> },
+    };
+    expect(BLOCK_REGISTRY.liveSlot({}, ctxWithSlots)).toBeNull();
+    expect(BLOCK_REGISTRY.liveSlot({ slot: 42 }, ctxWithSlots)).toBeNull();
+  });
+
+  it("liveSlot: renders the caller's real element from ctx.liveSlots by name", () => {
+    const ctxWithSlots: BlockRenderContext = {
+      ...baseCtx,
+      liveSlots: { staffDirectory: <div data-testid="the-real-directory" /> },
+    };
+    const { getByTestId } = render(
+      <>{BLOCK_REGISTRY.liveSlot({ slot: "staffDirectory" }, ctxWithSlots)}</>,
+    );
+    expect(getByTestId("the-real-directory")).toBeTruthy();
   });
 
   it("featureGrid: an item's optional image manifestKey resolves through ctx.imageUrl", () => {

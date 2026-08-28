@@ -120,6 +120,7 @@ function renderSiteBundle(input) {
         profile: input.profile,
         headingClassName: input.brand?.fontPairing.headingClassName,
         contactForm: input.contactForm,
+        liveSlots: input.liveSlots,
     };
     const blocks = extractBlocks(page.mdxAst);
     const rendered = blocks
