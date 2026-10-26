@@ -24,8 +24,17 @@
 //   content/<a>/<b>.json      -> page path "/<a>/<b>"
 //   images/<manifestKey>.<png|jpg|jpeg|webp>
 //
-// Usage: node scripts/build-bundle.mjs <content-repo-root> <output-file>
+// Usage: node scripts/build-bundle.mjs <content-repo-root> <output-file> [--manifest]
+//
+// v4.1.0 (staged ingest, presby DECISION-279): the default output above is
+// still the legacy single-request body and is unchanged. `--manifest` writes
+// the manifest instead -- the pages plus, for each image, its manifestKey,
+// content type, sha256 and byte size (no base64) -- which scripts/ingest.mjs
+// uses to send a large site image by image. Two image files that would share
+// a manifestKey (a.jpg and a.png, or the same name in two folders) fail the
+// build in BOTH forms; before v4.1.0 one silently overwrote the other.
 
+import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
@@ -35,6 +44,52 @@ const CONTENT_TYPE_BY_EXT = {
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
 };
+
+/**
+ * A problem with the content repo itself (as opposed to a bug in this
+ * script). `code` is stable so callers can tell them apart; `message` is
+ * written for the person who has to fix their files and has no trailing
+ * "Nothing was sent." -- the caller adds that when it is true.
+ */
+export class BuildError extends Error {
+  constructor(code, message) {
+    super(message);
+    this.name = "BuildError";
+    this.code = code;
+  }
+}
+
+/**
+ * Magic-byte sniff for the three formats the platform accepts. Mirrors
+ * presby's src/lib/storage/sniff.ts (same signatures) so a file that passes
+ * here is not refused there for its type. Returns null for anything else.
+ */
+export function sniffImageType(bytes) {
+  if (
+    bytes.length >= 8 &&
+    bytes[0] === 0x89 &&
+    bytes[1] === 0x50 &&
+    bytes[2] === 0x4e &&
+    bytes[3] === 0x47 &&
+    bytes[4] === 0x0d &&
+    bytes[5] === 0x0a &&
+    bytes[6] === 0x1a &&
+    bytes[7] === 0x0a
+  ) {
+    return "image/png";
+  }
+  if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+    return "image/jpeg";
+  }
+  if (
+    bytes.length >= 12 &&
+    bytes.toString("ascii", 0, 4) === "RIFF" &&
+    bytes.toString("ascii", 8, 12) === "WEBP"
+  ) {
+    return "image/webp";
+  }
+  return null;
+}
 
 export function walkFiles(dir) {
   if (!statSync(dir, { throwIfNoEntry: false })) return [];
@@ -95,45 +150,169 @@ export function buildPages(contentRoot) {
   });
 }
 
-export function buildImages(imagesRoot) {
-  const files = walkFiles(imagesRoot);
-  return files
-    .map((file) => {
-      const ext = path.extname(file).toLowerCase();
-      const contentType = CONTENT_TYPE_BY_EXT[ext];
-      if (!contentType) return null;
-      const manifestKey = path.basename(file, ext);
-      const bytes = readFileSync(file);
-      return {
-        manifestKey,
-        contentType,
-        bytesBase64: bytes.toString("base64"),
-      };
-    })
-    .filter((image) => image !== null);
+/**
+ * Every recognized image under `imagesRoot`, sorted by relative path, with
+ * its manifest key. Throws BuildError("key_collision") when two files would
+ * share a key. `relativeTo` is what the reported paths are relative to
+ * (default: the folder above `imagesRoot`, i.e. the content repo root).
+ */
+function collectImageFiles(imagesRoot, relativeTo = path.dirname(imagesRoot)) {
+  const found = [];
+  for (const file of walkFiles(imagesRoot)) {
+    const ext = path.extname(file).toLowerCase();
+    const contentType = CONTENT_TYPE_BY_EXT[ext];
+    if (!contentType) continue;
+    found.push({
+      file,
+      relativePath: path.relative(relativeTo, file).split(path.sep).join("/"),
+      contentType,
+      manifestKey: path.basename(file, ext),
+    });
+  }
+  found.sort((a, b) =>
+    a.relativePath < b.relativePath ? -1 : a.relativePath > b.relativePath ? 1 : 0,
+  );
+  const seen = new Map();
+  for (const image of found) {
+    const earlier = seen.get(image.manifestKey);
+    if (earlier) {
+      throw new BuildError(
+        "key_collision",
+        `Images "${earlier}" and "${image.relativePath}" would both be called "${image.manifestKey}". Give each image a different file name (the part before the extension), then push again.`,
+      );
+    }
+    seen.set(image.manifestKey, image.relativePath);
+  }
+  return found;
+}
+
+export function buildImages(imagesRoot, relativeTo) {
+  return collectImageFiles(imagesRoot, relativeTo).map((image) => ({
+    manifestKey: image.manifestKey,
+    contentType: image.contentType,
+    bytesBase64: readFileSync(image.file).toString("base64"),
+  }));
+}
+
+/**
+ * The manifest: the pages plus one entry per image carrying everything the
+ * staged transport needs and none of the bytes. Sorted by manifestKey
+ * (code-unit order), which is also the order images are uploaded in. `file`
+ * is absolute; `relativePath` is what messages show. `contentType` is the
+ * SNIFFED type -- an image whose name and bytes disagree on format is sent as
+ * what its bytes are, as the platform will treat it; one whose bytes are none
+ * of the three formats is a BuildError, not something to send and see refused.
+ */
+export function buildManifest(repoRoot) {
+  const contentRoot = path.join(repoRoot, "content");
+  const imagesRoot = path.join(repoRoot, "images");
+  const pages = buildPages(contentRoot);
+  const images = collectImageFiles(imagesRoot, repoRoot).map((entry) => {
+    const bytes = readFileSync(entry.file);
+    if (bytes.length === 0) {
+      throw new BuildError(
+        "image_empty",
+        `Image "${entry.relativePath}" is empty. Remove it or replace it, then push again.`,
+      );
+    }
+    const sniffed = sniffImageType(bytes);
+    if (!sniffed) {
+      throw new BuildError(
+        "image_not_image",
+        `Image "${entry.relativePath}" is not a PNG, JPEG or WEBP file, whatever its name says. Replace or remove it, then push again.`,
+      );
+    }
+    return {
+      manifestKey: entry.manifestKey,
+      contentType: sniffed,
+      sha256: createHash("sha256").update(bytes).digest("hex"),
+      size: bytes.length,
+      file: path.resolve(entry.file),
+      relativePath: entry.relativePath,
+    };
+  });
+  images.sort((a, b) => (a.manifestKey < b.manifestKey ? -1 : a.manifestKey > b.manifestKey ? 1 : 0));
+  return { pages, images };
+}
+
+/** The legacy request body for a manifest: reads each image's bytes from disk. */
+export function legacyBundleFromManifest(manifest) {
+  return {
+    bundle: {
+      schemaVersion: 1,
+      pages: manifest.pages,
+      images: manifest.images.map((image) => ({
+        manifestKey: image.manifestKey,
+        contentType: image.contentType,
+        bytesBase64: readFileSync(image.file).toString("base64"),
+      })),
+    },
+  };
+}
+
+/**
+ * The exact byte length of JSON.stringify(legacyBundleFromManifest(...)),
+ * computed WITHOUT building the (tens of MB) base64 string. Images need only
+ * `{ manifestKey, contentType, size }`. Exact, not an estimate: the transport
+ * choice and the 4,000,000-byte limit are decided on it.
+ */
+export function legacyBodyBytes(pages, images) {
+  let total = Buffer.byteLength(
+    JSON.stringify({ bundle: { schemaVersion: 1, pages, images: [] } }),
+  );
+  images.forEach((image, index) => {
+    // The object with an empty base64 string, plus the base64 characters
+    // (4 per started 3 bytes), plus the comma between array elements.
+    total +=
+      Buffer.byteLength(
+        JSON.stringify({
+          manifestKey: image.manifestKey,
+          contentType: image.contentType,
+          bytesBase64: "",
+        }),
+      ) +
+      4 * Math.ceil(image.size / 3) +
+      (index > 0 ? 1 : 0);
+  });
+  return total;
 }
 
 export function buildBundle(repoRoot) {
   const contentRoot = path.join(repoRoot, "content");
   const imagesRoot = path.join(repoRoot, "images");
   const pages = buildPages(contentRoot);
-  const images = buildImages(imagesRoot);
+  const images = buildImages(imagesRoot, repoRoot);
   return { bundle: { schemaVersion: 1, pages, images } };
 }
 
 function main() {
-  const [, , repoRoot, outFile] = process.argv;
+  const args = process.argv.slice(2);
+  const manifestMode = args.includes("--manifest");
+  const [repoRoot, outFile] = args.filter((arg) => !arg.startsWith("--"));
   if (!repoRoot || !outFile) {
     console.error(
-      "usage: node build-bundle.mjs <content-repo-root> <output-file>",
+      "usage: node build-bundle.mjs <content-repo-root> <output-file> [--manifest]",
     );
     process.exit(1);
   }
-  const bundle = buildBundle(repoRoot);
-  writeFileSync(outFile, JSON.stringify(bundle));
-  console.log(
-    `Built bundle: ${bundle.bundle.pages.length} page(s), ${bundle.bundle.images.length} image(s) -> ${outFile}`,
-  );
+  try {
+    if (manifestMode) {
+      const { pages, images } = buildManifest(repoRoot);
+      writeFileSync(outFile, JSON.stringify({ schemaVersion: 1, pages, images }));
+      console.log(
+        `Built manifest: ${pages.length} page(s), ${images.length} image(s) -> ${outFile}`,
+      );
+      return;
+    }
+    const bundle = buildBundle(repoRoot);
+    writeFileSync(outFile, JSON.stringify(bundle));
+    console.log(
+      `Built bundle: ${bundle.bundle.pages.length} page(s), ${bundle.bundle.images.length} image(s) -> ${outFile}`,
+    );
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  }
 }
 
 // CLI guard — mirrors `require.main === module` for ESM, so tests can

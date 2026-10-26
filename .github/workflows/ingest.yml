@@ -1,23 +1,30 @@
 name: presby-site-kit / ingest
 
-# Reusable workflow — a site-<slug> content repo calls this on push to main,
-# never runs it directly. Builds the JSON bundle presby's own
-# POST /api/sites/ingest expects (scripts/build-bundle.mjs, this repo) and
-# POSTs it, authenticated as this exact job via GitHub Actions OIDC — no
-# stored credential in the content repo. See presby's own
+# Reusable workflow -- a site-<slug> content repo calls this on push to main,
+# never runs it directly. Sends the site (content/ and images/) to presby's
+# /api/sites/ingest, authenticated as this exact job via GitHub Actions OIDC --
+# no stored credential in the content repo. A site that fits in one 4.0 MB
+# request is sent as one request; a larger one is sent image by image, only the
+# images the platform does not already hold, and published by a final commit
+# request (scripts/ingest.mjs, this repo; presby DECISION-279). See presby's own
 # docs/work-log/2026-08-20-public-sites.md (DECISION-087) for the token
 # contract this satisfies: iss/aud/repository_owner/ref/job_workflow_ref are
-# all checked server-side against this job's own identity.
+# all checked server-side against this job's own identity -- and the platform
+# gets a fresh token for every request this job makes.
 #
 # `job_workflow_ref` prefix-matches "<owner>/presby-site-kit/.github/workflows/"
-# on the verifying end — satisfied by this file's own path, not by anything a
+# on the verifying end -- satisfied by this file's own path, not by anything a
 # calling repo controls.
+#
+# Runs for one content repo are serialized (the concurrency group below); a
+# run is never cancelled mid-publish, and of several waiting runs only the
+# newest is kept.
 
 on:
   workflow_call:
     inputs:
       presby_ingest_url:
-        description: "Full URL of presby's POST /api/sites/ingest endpoint."
+        description: "Full URL of presby's POST /api/sites/ingest endpoint. A large site also uses its /plan, /images and /commit paths."
         required: true
         type: string
       oidc_audience:
@@ -25,14 +32,27 @@ on:
         required: true
         type: string
       site_kit_ref:
-        description: "presby-site-kit ref to pull build-bundle.mjs from. Defaults to this workflow's own ref."
+        description: "presby-site-kit ref to pull the ingest scripts from. Defaults to main."
         required: false
         type: string
         default: "main"
+      transport:
+        description: "auto (default): send the site as one request when it fits the 4.0 MB limit, otherwise image by image. staged or legacy forces one or the other."
+        required: false
+        type: string
+        default: "auto"
 
 jobs:
   ingest:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # github.repository is the CALLING repo inside a called workflow, so this
+    # is one group per content repo. cancel-in-progress stays false on purpose:
+    # cancelling a run whose commit request is in flight could let it land
+    # after its successor's.
+    concurrency:
+      group: presby-site-ingest-${{ github.repository }}
+      cancel-in-progress: false
     permissions:
       id-token: write
       contents: read
@@ -40,7 +60,7 @@ jobs:
       - name: Checkout content repo
         uses: actions/checkout@v4
 
-      - name: Checkout presby-site-kit (for build-bundle.mjs)
+      - name: Checkout presby-site-kit (for the ingest scripts)
         uses: actions/checkout@v4
         with:
           repository: ${{ github.repository_owner }}/presby-site-kit
@@ -52,33 +72,30 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Build content bundle
-        run: node .site-kit/scripts/build-bundle.mjs "$GITHUB_WORKSPACE" bundle.json
-
-      - name: Request OIDC token and ingest
+      - name: Request OIDC tokens and ingest
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require("node:fs");
+            const path = require("node:path");
+            const { pathToFileURL } = require("node:url");
 
-            const audience = ${{ toJSON(inputs.oidc_audience) }};
-            const url = ${{ toJSON(inputs.presby_ingest_url) }};
+            const workspace = process.env.GITHUB_WORKSPACE;
+            const siteKitRef = ${{ toJSON(inputs.site_kit_ref) }};
+            const scriptPath = path.join(workspace, ".site-kit", "scripts", "ingest.mjs");
 
-            const token = await core.getIDToken(audience);
-            const bundle = fs.readFileSync("bundle.json", "utf-8");
-
-            const res = await fetch(url, {
-              method: "POST",
-              headers: {
-                "content-type": "application/json",
-                authorization: `Bearer ${token}`,
-              },
-              body: bundle,
-            });
-
-            const bodyText = await res.text();
-            core.info(`presby ingest responded ${res.status}: ${bodyText}`);
-
-            if (!res.ok) {
-              core.setFailed(`Ingest failed with status ${res.status}: ${bodyText}`);
+            if (!fs.existsSync(scriptPath)) {
+              core.setFailed(
+                `presby-site-kit ref "${siteKitRef}" has no scripts/ingest.mjs, so this site cannot publish with it. Set site_kit_ref to "main" (or to v4.1.0 or later), then re-run this job.`,
+              );
+              return;
             }
+
+            const { runFromGithubScript } = await import(pathToFileURL(scriptPath).href);
+            await runFromGithubScript({
+              core,
+              repoRoot: workspace,
+              ingestUrl: ${{ toJSON(inputs.presby_ingest_url) }},
+              audience: ${{ toJSON(inputs.oidc_audience) }},
+              transport: ${{ toJSON(inputs.transport) }},
+            });

@@ -7,6 +7,44 @@ one entry point, `renderSiteBundle()`, to turn a normalized content bundle
 repo's own CI) into JSX — rendered inside presby's own server process, not a
 per-org deployment.
 
+## Publishing a site (ingest)
+
+A site repo (`site-<slug>`) publishes by calling this repo's reusable workflow,
+`.github/workflows/ingest.yml`, on every push to `main`. The workflow sends
+`content/` and `images/` to presby's `/api/sites/ingest`, authenticated as that
+job through GitHub Actions OIDC (no stored credential).
+
+**v4.1.0: large sites publish.** The platform refuses any request body over
+4.5 MB, and a site with many photos is far bigger than that as one request. So:
+
+- A site whose single-request body is **at most 4,000,000 bytes** is sent as
+  one request, exactly as before.
+- A larger site is sent in steps: a **plan** (which images, by sha256, does the
+  platform not hold yet?), one **upload** request per missing image, and a
+  **commit** with the pages and the image list. The site changes only when the
+  commit succeeds, so a run that stops partway leaves the live site as it was;
+  re-running picks up where it left off.
+- An image over 4,000,000 bytes cannot be published yet. The run stops before
+  sending anything and names the file.
+- Two image files that would share a name once the extension is dropped
+  (`a.jpg` and `a.png`, or the same name in two folders) fail the build; one
+  used to silently overwrite the other.
+- Runs for one site repo are serialized and never cancelled mid-publish; of
+  several waiting runs only the newest is kept. Re-running an *older* failed
+  run after a newer one has succeeded publishes the older content again, so
+  re-run only the latest.
+
+The workflow's `transport` input (`auto` by default, or `staged` / `legacy`)
+forces one or the other. The client is `scripts/ingest.mjs`; the manifest it
+sends is built by `scripts/build-bundle.mjs` (`node scripts/build-bundle.mjs
+<repo> <out>` still writes the legacy single-request body, and `--manifest`
+writes the manifest). The wire contract (limits, headers, error codes) is
+documented in the header of `scripts/ingest.mjs` and pinned by
+`test/ingest.test.ts`; presby's server holds the identical literals.
+
+The platform must support the staged routes before a large site can use them.
+A site repo that pins `site_kit_ref` to a tag older than v4.1.0 is unsupported.
+
 ## Status: v3.5.0
 
 **v3.5.0 adds a generic `liveSlots` injection mechanism** — the piece
