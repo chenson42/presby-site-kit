@@ -314,7 +314,7 @@ describe("transport choice", () => {
     expect(h.logs).toEqual([
       "Built 1 page(s) and 1 image(s): 1 distinct, 2.0 KB.",
       expect.stringMatching(/^Sending the site as one request \(\d+(\.\d)? KB of the 4\.0 MB allowed\)\.$/),
-      `Published commit 0123456 to "${SLUG}" (1 page(s)).`,
+      `Sent commit 0123456 to "${SLUG}" (1 page(s)); the platform has ingested it.`,
     ]);
   });
 
@@ -432,7 +432,7 @@ describe("transport choice", () => {
       'Uploaded 4 of 5: "big4" (1.5 MB).',
       'Uploaded 5 of 5: "tiny" (200 bytes).',
       "Publishing 1 page(s) and 5 image reference(s).",
-      `Published commit 0123456 to "${SLUG}" (1 page(s)).`,
+      `Sent commit 0123456 to "${SLUG}" (1 page(s)); the platform has ingested it.`,
       "Sent 5 new image(s); 0 already on the platform.",
     ]);
   });
@@ -461,7 +461,7 @@ describe("transport choice", () => {
       "Checking whether the platform already has this commit.",
       "This site has no images to send.",
       "Publishing 1 page(s) and 0 image reference(s).",
-      `Published commit 0123456 to "${SLUG}" (1 page(s)).`,
+      `Sent commit 0123456 to "${SLUG}" (1 page(s)); the platform has ingested it.`,
       "Sent 0 new image(s); 0 already on the platform.",
     ]);
   });

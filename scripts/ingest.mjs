@@ -249,7 +249,7 @@ function reportIngested(ctx, step, body) {
   ) {
     throw notUnderstood(step, 200, JSON.stringify(body));
   }
-  ctx.log(`Published commit ${short(body.commitSha)} to "${body.organizationSlug}" (${body.pageCount} page(s)).`);
+  ctx.log(`Sent commit ${short(body.commitSha)} to "${body.organizationSlug}" (${body.pageCount} page(s)); the platform has ingested it.`);
 }
 
 // --- The run -------------------------------------------------------------------
