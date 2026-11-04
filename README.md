@@ -7,6 +7,30 @@ one entry point, `renderSiteBundle()`, to turn a normalized content bundle
 repo's own CI) into JSX — rendered inside presby's own server process, not a
 per-org deployment.
 
+## Previewing a site locally (v4.2.0)
+
+`presby-site-preview` serves a content repo's pages on `http://localhost:4000`
+through the same `renderSiteBundle()` and the same `buildManifest()` the
+publish uses, so a file the publish would refuse is refused here with the same
+message. A content repo adds this package as a dev dependency and a
+`"preview": "presby-site-preview"` script; then `npm install` once and
+`npm run preview`. Options: `--port`, `--dir`, `--live-site <url>`,
+`--offline`.
+
+- Colours and fonts come from the live site's own stylesheets (`liveSite` in an
+  optional `preview.json`, which also carries the org name, portal URL and a
+  sample profile for the footer and `serviceTimes`). `--offline` falls back to
+  `styles.css` and neutral defaults.
+- Live slots and the contact form render as labelled placeholders; carousels
+  show their first slide (no client JavaScript ships, beyond a small menu
+  toggle and auto-reload on save).
+- A panel at the foot of each page names every skipped block, unknown live
+  slot, missing image key, oversize image and reserved page name, which the
+  real site skips silently.
+- Listens on 127.0.0.1 only; images are served by manifest key, never by path.
+
+`react-dom` joins `react` as a peer dependency so the preview can render.
+
 ## Publishing a site (ingest)
 
 A site repo (`site-<slug>`) publishes by calling this repo's reusable workflow,
