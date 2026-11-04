@@ -313,12 +313,18 @@ document.addEventListener("click",function(e){var b=e.target.closest('[data-slot
 (function(){var v=null;setInterval(function(){fetch("/__preview/version").then(function(r){return r.text()}).then(function(t){if(v!==null&&t!==v)location.reload();v=t}).catch(function(){})},1000)})();
 </script>`;
 
+// The platform's pages carry next-themes' pre-paint script, which puts a
+// `dark` class on <html> from the system setting; the borrowed stylesheets
+// switch on that class. This is the same decision, plus ?theme=light|dark to
+// force one. Runs in <head> so the page never flashes the wrong scheme.
+const THEME_SCRIPT = `<script>(function(){var r=document.documentElement,q=new URLSearchParams(location.search).get("theme"),m=window.matchMedia("(prefers-color-scheme: dark)");function a(d){r.classList.toggle("dark",d);r.style.colorScheme=d?"dark":"light"}a(q?q==="dark":m.matches);if(!q)m.addEventListener("change",function(e){a(e.matches)})})()</script>`;
+
 export function pageDocument(result, live) {
-  const head = live
+  const head = THEME_SCRIPT + (live
     ? live.stylesheets.map((href) => `<link rel="stylesheet" href="${escapeHtml(href)}">`).join("") + live.inlineStyles.join("")
-    : `<link rel="stylesheet" href="/__preview/kit.css">${OFFLINE_ROOT}`;
+    : `<link rel="stylesheet" href="/__preview/kit.css">${OFFLINE_ROOT}`);
   const notes = live
-    ? "Colours and fonts come from the live site. Live blocks and the contact form are placeholders; carousels show their first slide. This page reloads when you save."
+    ? "Colours and fonts come from the live site, in light or dark to match your system (add ?theme=light or ?theme=dark to force one). Live blocks and the contact form are placeholders; carousels show their first slide. This page reloads when you save."
     : "Offline styles: colours and fonts are approximate. Live blocks and the contact form are placeholders. This page reloads when you save.";
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${escapeHtml(result.title)} (preview)</title>${head}</head><body class="${escapeHtml(live?.bodyClass ?? "")}"><main class="min-h-screen" style="padding-bottom:4rem">${result.html}</main>${diagnosticsPanel(result.diagnostics, notes)}${CLIENT_SCRIPT}</body></html>`;
 }

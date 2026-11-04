@@ -7,7 +7,7 @@ one entry point, `renderSiteBundle()`, to turn a normalized content bundle
 repo's own CI) into JSX — rendered inside presby's own server process, not a
 per-org deployment.
 
-## Previewing a site locally (v4.2.0)
+## Previewing a site locally (v4.2.0; dark mode v4.2.1)
 
 `presby-site-preview` serves a content repo's pages on `http://localhost:4000`
 through the same `renderSiteBundle()` and the same `buildManifest()` the
@@ -21,6 +21,9 @@ message. A content repo adds this package as a dev dependency and a
   optional `preview.json`, which also carries the org name, portal URL and a
   sample profile for the footer and `serviceTimes`). `--offline` falls back to
   `styles.css` and neutral defaults.
+- Light or dark follows the system setting, as on the platform (its
+  stylesheets switch on a `dark` class on `<html>`); `?theme=light` or
+  `?theme=dark` forces one.
 - Live slots and the contact form render as labelled placeholders; carousels
   show their first slide (no client JavaScript ships, beyond a small menu
   toggle and auto-reload on save).

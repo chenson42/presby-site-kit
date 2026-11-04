@@ -139,6 +139,13 @@ describe("pageDocument", () => {
     expect(doc).toContain('href="/__preview/kit.css"');
     expect(doc).toContain("a &lt;b&gt; problem");
   });
+
+  it("applies the system colour scheme as the platform's dark class, before the body", () => {
+    const doc = preview.pageDocument({ title: "t", html: "", diagnostics: [] }, null);
+    const head = doc.slice(0, doc.indexOf("</head>"));
+    expect(head).toContain('prefers-color-scheme: dark');
+    expect(head).toContain('classList.toggle("dark"');
+  });
 });
 
 describe("helpers", () => {
