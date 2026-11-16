@@ -134,8 +134,13 @@ function renderSiteBundle(input) {
         return { key: `${block.type}-${index}`, element };
     })
         .filter((entry) => entry !== null);
+    // `frontMatter.hideMenu: true`: this page shows the logo header and the
+    // footer but no menu and no portal link in either -- for a one-page site
+    // whose content already is the links (a portal front door), where a
+    // menu repeating them is noise.
+    const hideMenu = (0, utils_1.isRecord)(page.frontMatter) && page.frontMatter.hideMenu === true;
     const grouped = Boolean(input.portalUrl && input.portalNavGroup && input.portalLabel);
-    const entries = navEntriesFor(input.pages, input.pageUrl, grouped
+    const allEntries = navEntriesFor(input.pages, input.pageUrl, grouped
         ? [
             {
                 entry: {
@@ -149,9 +154,10 @@ function renderSiteBundle(input) {
             },
         ]
         : []);
+    const entries = hideMenu ? [] : allEntries;
     return ((0, jsx_runtime_1.jsxs)("div", { className: input.brand?.fontPairing.bodyClassName
             ? `presby-site ${input.brand.fontPairing.bodyClassName}`
-            : "presby-site", children: [(0, jsx_runtime_1.jsx)(Nav_1.Nav, { entries: entries, currentPath: input.currentPath, portalUrl: grouped ? null : input.portalUrl, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName, organizationHomeUrl: input.pageUrl("/"), promoText: promoTextFor(input.profile) }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName, entries: entries, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName })] }));
+            : "presby-site", children: [(0, jsx_runtime_1.jsx)(Nav_1.Nav, { entries: entries, currentPath: input.currentPath, portalUrl: grouped || hideMenu ? null : input.portalUrl, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName, organizationHomeUrl: input.pageUrl("/"), promoText: promoTextFor(input.profile) }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName, entries: entries, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName })] }));
 }
 var blocks_2 = require("./blocks");
 Object.defineProperty(exports, "ALLOWED_BLOCK_TYPES", { enumerable: true, get: function () { return blocks_2.ALLOWED_BLOCK_TYPES; } });

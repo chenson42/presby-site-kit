@@ -275,10 +275,16 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
     })
     .filter((entry): entry is { key: string; element: ReactElement } => entry !== null);
 
+  // `frontMatter.hideMenu: true`: this page shows the logo header and the
+  // footer but no menu and no portal link in either -- for a one-page site
+  // whose content already is the links (a portal front door), where a
+  // menu repeating them is noise.
+  const hideMenu =
+    isRecord(page.frontMatter) && page.frontMatter.hideMenu === true;
   const grouped = Boolean(
     input.portalUrl && input.portalNavGroup && input.portalLabel,
   );
-  const entries = navEntriesFor(
+  const allEntries = navEntriesFor(
     input.pages,
     input.pageUrl,
     grouped
@@ -296,6 +302,7 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
         ]
       : [],
   );
+  const entries = hideMenu ? [] : allEntries;
 
   return (
     <div
@@ -308,7 +315,7 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
       <Nav
         entries={entries}
         currentPath={input.currentPath}
-        portalUrl={grouped ? null : input.portalUrl}
+        portalUrl={grouped || hideMenu ? null : input.portalUrl}
         logoUrl={input.logoUrl}
         logoAlt={`${input.organizationName} logo`}
         organizationName={input.organizationName}

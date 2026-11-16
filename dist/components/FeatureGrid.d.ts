@@ -8,6 +8,10 @@ export interface FeatureGridItem {
      * image renders exactly as it always has. */
     imageUrl?: string;
     imageAlt?: string;
+    /** `"solid"` variant only: this tile's own background, an already
+     * validated `#rrggbb` dark enough for its white text (see blocks.tsx).
+     * Unset uses the brand's --primary, as every solid tile always has. */
+    color?: string;
 }
 export interface FeatureGridProps {
     items: FeatureGridItem[];

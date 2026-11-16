@@ -86,6 +86,7 @@ function asFeatureGridItems(value, ctx) {
                 href: resolveHref(href, ctx),
                 imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined,
                 imageAlt: (0, utils_1.asNonEmptyString)(raw.imageAlt) ?? undefined,
+                color: (0, utils_1.asDarkHexColor)(raw.color) ?? undefined,
             },
         ];
     });

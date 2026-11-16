@@ -96,6 +96,34 @@ describe("individual block renderers — malformed props render nothing, not a t
     );
   });
 
+  it("featureGrid solid: an item's dark #rrggbb color becomes that tile's --tile-bg; a too-light, malformed or injected value is dropped", () => {
+    const element = BLOCK_REGISTRY.featureGrid(
+      {
+        variant: "solid",
+        items: [
+          { heading: "Teal", body: "b", href: "https://a.example.invalid", color: "#007071" },
+          { heading: "Pale", body: "b", href: "https://b.example.invalid", color: "#f0f0f0" },
+          { heading: "Bad", body: "b", href: "https://c.example.invalid", color: "red;}body{x:y" },
+          { heading: "None", body: "b", href: "https://d.example.invalid" },
+        ],
+      },
+      baseCtx,
+    );
+    const { container } = render(<>{element}</>);
+    const tiles = Array.from(container.querySelectorAll("li"));
+    expect(tiles[0].style.getPropertyValue("--tile-bg")).toBe("#007071");
+    tiles.slice(1).forEach((li) => expect(li.getAttribute("style")).toBeNull());
+  });
+
+  it("featureGrid card: color is ignored outside the solid variant", () => {
+    const element = BLOCK_REGISTRY.featureGrid(
+      { items: [{ heading: "Teal", body: "b", href: "https://a.example.invalid", color: "#007071" }] },
+      baseCtx,
+    );
+    const { container } = render(<>{element}</>);
+    expect(container.querySelector("li")?.getAttribute("style")).toBeNull();
+  });
+
   it("callout: cta is OPTIONAL — the reference site's own \"Stay in touch\" section has no button", () => {
     const element = BLOCK_REGISTRY.callout(
       { heading: "Need help?", body: "We can help." },

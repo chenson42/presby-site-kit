@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import type { CSSProperties, ReactElement } from "react";
 
 export interface FeatureGridItem {
   heading: string;
@@ -9,6 +9,10 @@ export interface FeatureGridItem {
    * image renders exactly as it always has. */
   imageUrl?: string;
   imageAlt?: string;
+  /** `"solid"` variant only: this tile's own background, an already
+   * validated `#rrggbb` dark enough for its white text (see blocks.tsx).
+   * Unset uses the brand's --primary, as every solid tile always has. */
+  color?: string;
 }
 
 export interface FeatureGridProps {
@@ -44,7 +48,14 @@ export function FeatureGrid({
       <ul>
         {items.map((item, index) => (
           // eslint-disable-next-line react/no-array-index-key
-          <li key={index}>
+          <li
+            key={index}
+            style={
+              variant === "solid" && item.color
+                ? ({ "--tile-bg": item.color } as CSSProperties)
+                : undefined
+            }
+          >
             <a href={item.href}>
               {item.imageUrl ? (
                 <img src={item.imageUrl} alt={item.imageAlt ?? ""} />

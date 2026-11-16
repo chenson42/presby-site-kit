@@ -143,6 +143,29 @@ export function asHexColor(value: unknown): string | null {
   return s !== null && HEX_COLOR_RE.test(s) ? s : null;
 }
 
+/** WCAG relative luminance of a `#rrggbb` color (0 for anything else). */
+export function relativeLuminance(hex: string): number {
+  const match = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!match) return 0;
+  const int = parseInt(match[1], 16);
+  const channels = [(int >> 16) & 255, (int >> 8) & 255, int & 255].map((value) => {
+    const c = value / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+/**
+ * A `#rrggbb` color white text stays readable on (WCAG AA, 4.5:1 for body
+ * text), or null. For tiles whose text is always white: a too-light color
+ * falls back to the brand's own --primary rather than rendering unreadable.
+ */
+export function asDarkHexColor(value: unknown): string | null {
+  const hex = asHexColor(value);
+  if (hex === null) return null;
+  return 1.05 / (relativeLuminance(hex) + 0.05) >= 4.5 ? hex : null;
+}
+
 /**
  * Trusted-allowlist video embed URL builder. A `SermonEmbed` block is
  * content-authored (a lower trust tier — see `sanitizeHref`'s own framing)

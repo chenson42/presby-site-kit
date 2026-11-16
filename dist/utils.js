@@ -17,6 +17,8 @@ exports.formatClockTime = formatClockTime;
 exports.formatEventDateTime = formatEventDateTime;
 exports.mapsSearchUrl = mapsSearchUrl;
 exports.asHexColor = asHexColor;
+exports.relativeLuminance = relativeLuminance;
+exports.asDarkHexColor = asDarkHexColor;
 exports.toTrustedEmbedUrl = toTrustedEmbedUrl;
 function isRecord(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -144,6 +146,29 @@ const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 function asHexColor(value) {
     const s = asString(value);
     return s !== null && HEX_COLOR_RE.test(s) ? s : null;
+}
+/** WCAG relative luminance of a `#rrggbb` color (0 for anything else). */
+function relativeLuminance(hex) {
+    const match = /^#([0-9a-f]{6})$/i.exec(hex);
+    if (!match)
+        return 0;
+    const int = parseInt(match[1], 16);
+    const channels = [(int >> 16) & 255, (int >> 8) & 255, int & 255].map((value) => {
+        const c = value / 255;
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+/**
+ * A `#rrggbb` color white text stays readable on (WCAG AA, 4.5:1 for body
+ * text), or null. For tiles whose text is always white: a too-light color
+ * falls back to the brand's own --primary rather than rendering unreadable.
+ */
+function asDarkHexColor(value) {
+    const hex = asHexColor(value);
+    if (hex === null)
+        return null;
+    return 1.05 / (relativeLuminance(hex) + 0.05) >= 4.5 ? hex : null;
 }
 /**
  * Trusted-allowlist video embed URL builder. A `SermonEmbed` block is

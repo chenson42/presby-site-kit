@@ -215,6 +215,44 @@ describe("renderSiteBundle — Nav composition", () => {
     links.forEach((link) => expect(link.getAttribute("href")).toBe(testPortalUrl));
   });
 
+  it("frontMatter.hideMenu: true drops every menu entry and the portal link from both Nav and Footer, but keeps the logo header", () => {
+    const hidden: SiteKitPage = {
+      ...homeWithNav,
+      frontMatter: { ...homeWithNav.frontMatter, hideMenu: true },
+    };
+    render(
+      <>
+        {renderSiteBundle(
+          baseInput({
+            pages: [hidden, aboutPage],
+            currentPath: "/",
+            logoUrl: "https://img.example.invalid/logo.png",
+            portalUrl: testPortalUrl,
+            portalNavGroup: "Connect",
+            portalLabel: "Our Directory",
+          }),
+        )}
+      </>,
+    );
+    expect(screen.getByRole("navigation", { name: "Site" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "About" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Our Directory" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "Member Login" })).toBeNull();
+    expect(screen.queryByText("Connect")).toBeNull();
+    expect(screen.queryByRole("button", { name: "Open menu" })).toBeNull();
+  });
+
+  it("hideMenu applies only to the page that sets it", () => {
+    const hidden: SiteKitPage = {
+      ...homeWithNav,
+      frontMatter: { ...homeWithNav.frontMatter, hideMenu: true },
+    };
+    render(
+      <>{renderSiteBundle(baseInput({ pages: [hidden, aboutPage], currentPath: "/about" }))}</>,
+    );
+    expect(screen.getAllByRole("link", { name: "About" }).length).toBeGreaterThan(0);
+  });
+
   it("falls back to the flat Member Login link when portalNavGroup or portalLabel is missing", () => {
     render(
       <>

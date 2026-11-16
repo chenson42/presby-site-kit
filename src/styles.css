@@ -589,7 +589,9 @@
  * block bottom-anchored via justify-content: flex-end) was this
  * package's own most recently fixed bug. */
 .presby-site [data-block="feature-grid"][data-variant="solid"] li {
-  background: var(--primary);
+  /* --tile-bg: an item's own `color` (a validated dark #rrggbb, set inline
+   * on the li), e.g. one tile per color in an organization's logo. */
+  background: var(--tile-bg, var(--primary));
   color: #fff;
   border: none;
   border-radius: var(--site-image-radius);

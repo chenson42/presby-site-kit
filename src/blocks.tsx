@@ -15,6 +15,7 @@ import type { RenderSiteBundleProfile } from "./types";
 import {
   asArray,
   asCta,
+  asDarkHexColor,
   asHexColor,
   asNonEmptyString,
   asString,
@@ -135,6 +136,7 @@ function asFeatureGridItems(value: unknown, ctx: BlockRenderContext): FeatureGri
         href: resolveHref(href, ctx),
         imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined,
         imageAlt: asNonEmptyString(raw.imageAlt) ?? undefined,
+        color: asDarkHexColor(raw.color) ?? undefined,
       },
     ];
   });

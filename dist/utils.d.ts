@@ -56,4 +56,12 @@ export declare function formatClockTime(value: string): string;
 export declare function formatEventDateTime(iso: string): string | null;
 export declare function mapsSearchUrl(address: string): string;
 export declare function asHexColor(value: unknown): string | null;
+/** WCAG relative luminance of a `#rrggbb` color (0 for anything else). */
+export declare function relativeLuminance(hex: string): number;
+/**
+ * A `#rrggbb` color white text stays readable on (WCAG AA, 4.5:1 for body
+ * text), or null. For tiles whose text is always white: a too-light color
+ * falls back to the brand's own --primary rather than rendering unreadable.
+ */
+export declare function asDarkHexColor(value: unknown): string | null;
 export declare function toTrustedEmbedUrl(rawUrl: unknown): string | null;

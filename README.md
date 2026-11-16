@@ -72,6 +72,23 @@ documented in the header of `scripts/ingest.mjs` and pinned by
 The platform must support the staged routes before a large site can use them.
 A site repo that pins `site_kit_ref` to a tag older than v4.1.0 is unsupported.
 
+## Status: v4.3.0
+
+Two small content options for a one-page site whose content already is the
+links (a portal front door):
+
+- **`frontMatter.hideMenu: true`** on a page: the logo header and footer
+  still render, but with no menu, no menu button and no portal link in
+  either. Other pages of the same site are unaffected.
+- **`featureGrid` item `color`** (`"solid"` variant only): that tile's
+  background, as `#rrggbb`. It is used only if white text on it meets WCAG
+  AA (4.5:1); a lighter, malformed or anything-but-hex value is dropped and
+  the tile keeps the brand's `--primary`. Use it to give each tile one of
+  the colours in an organization's logo.
+
+v4.2.2 and v4.2.3 put the footer at the bottom of the window on a short page
+(the wrapper is a column flexbox at least the window's height).
+
 ## Status: v3.5.0
 
 **v3.5.0 adds a generic `liveSlots` injection mechanism** — the piece
