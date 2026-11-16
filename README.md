@@ -91,8 +91,8 @@ Three content options, first used by a presbytery's portal front door:
 Two small content options for a one-page site whose content already is the
 links (a portal front door):
 
-- **`frontMatter.hideMenu: true`** on a page: the logo header and footer
-  still render, but with no menu, no menu button and no portal link in
+- **`frontMatter.hideMenu: true`** on a page: the logo header (when the
+  organization has a logo) and the footer still render, but with no menu, no menu button and no portal link in
   either. Other pages of the same site are unaffected.
 - **`featureGrid` item `color`** (`"solid"` variant only): that tile's
   background, as `#rrggbb`. It is used only if white text on it meets WCAG

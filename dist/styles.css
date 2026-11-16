@@ -1303,6 +1303,26 @@
   max-width: 42rem;
 }
 
+/* Since v4.2.2 the wrapper is a column flexbox, and a flex item's
+ * children's margins no longer collapse out through it: a single-column
+ * prose block (no padding, no border) used to let its heading's top margin
+ * and its last paragraph's bottom margin merge into the 3rem block gap;
+ * inside a flex item they add to it, 16-40px per block. Trimming the
+ * outer two restores the old spacing exactly (both are smaller than the
+ * gap they used to merge into). A multi-column block was already its own
+ * formatting context, so it never collapsed and is left alone. */
+/* Two levels: a list's first or last item's margin collapsed out through
+ * the list too (ul > li). */
+.presby-site > [data-block="prose"]:not([data-columns]) > :first-child,
+.presby-site > [data-block="prose"]:not([data-columns]) > :first-child > :first-child {
+  margin-top: 0;
+}
+
+.presby-site > [data-block="prose"]:not([data-columns]) > :last-child,
+.presby-site > [data-block="prose"]:not([data-columns]) > :last-child > :last-child {
+  margin-bottom: 0;
+}
+
 /* Full-width opt-out (v3.6.0) -- for a heading+description prose block
  * authored as a short section intro between full-width sibling blocks
  * (e.g. a committee's name + one-sentence description sitting between

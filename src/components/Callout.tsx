@@ -2,16 +2,6 @@ import type { CSSProperties, ReactElement } from "react";
 import { renderMarkdown } from "../markdown";
 import { relativeLuminance } from "../utils";
 
-/**
- * WCAG relative luminance. The reference site authors two visually distinct
- * "colored band" sections with the SAME component (its own bg-color-teal and
- * bg-color-light-green section variants) -- one dark (white text), one a
- * pale tint of the same hue (dark text). There's no single "inset = white
- * text" rule that covers both; computing luminance from the actual
- * `background` hex and picking accordingly is the one rule that produces
- * the right answer for both without per-block manual overrides.
- */
-
 export interface CalloutProps {
   heading: string;
   /** Markdown source, rendered through the constrained markdown-to-React
