@@ -1312,9 +1312,12 @@
  * gap they used to merge into). A multi-column block was already its own
  * formatting context, so it never collapsed and is left alone. */
 /* Two levels: a list's first or last item's margin collapsed out through
- * the list too (ul > li). */
-.presby-site > [data-block="prose"]:not([data-columns]) > :first-child,
-.presby-site > [data-block="prose"]:not([data-columns]) > :first-child > :first-child {
+ * the list too (ul > li). The top trim applies only after a kit block,
+ * whose 3rem bottom margin the heading's margin used to merge into: after
+ * one of presby's live slots (no margin of its own) that heading margin
+ * was the only space between them, and it stays. */
+.presby-site > [data-block] + [data-block="prose"]:not([data-columns]) > :first-child,
+.presby-site > [data-block] + [data-block="prose"]:not([data-columns]) > :first-child > :first-child {
   margin-top: 0;
 }
 
