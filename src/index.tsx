@@ -2,6 +2,8 @@ import { Fragment, type ReactElement } from "react";
 import { ALLOWED_BLOCK_TYPES, BLOCK_REGISTRY, type BlockRenderContext } from "./blocks";
 import { Footer } from "./components/Footer";
 import { Nav, type NavEntry } from "./components/Nav";
+import { StructuredData } from "./components/StructuredData";
+import { siteSettingsFor } from "./site-settings";
 import type { ContentBlock, RenderSiteBundleProfile, SiteKitPage } from "./types";
 import { asNonEmptyString, dayName, formatClockTime, isRecord, sanitizeHref } from "./utils";
 
@@ -304,6 +306,19 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
   );
   const entries = hideMenu ? [] : allEntries;
 
+  // v4.5.0: site-wide settings from the home page's frontMatter `site`.
+  const site = siteSettingsFor(input.pages);
+  const copyrightHolder =
+    site.copyrightHolder === true ? input.organizationName : site.copyrightHolder;
+  let homeUrl: string | null = null;
+  if (input.origin) {
+    try {
+      homeUrl = new URL(input.pageUrl("/"), input.origin).toString();
+    } catch {
+      homeUrl = null;
+    }
+  }
+
   return (
     <div
       className={
@@ -312,6 +327,15 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
           : "presby-site"
       }
     >
+      {site.organization && page.path === "/" ? (
+        <StructuredData
+          organization={site.organization}
+          organizationName={input.organizationName}
+          url={homeUrl}
+          profile={input.profile}
+          logoUrl={input.logoUrl}
+        />
+      ) : null}
       <Nav
         entries={entries}
         currentPath={input.currentPath}
@@ -332,6 +356,9 @@ export function renderSiteBundle(input: RenderSiteBundleInput): ReactElement | n
         logoUrl={input.logoUrl}
         logoAlt={`${input.organizationName} logo`}
         organizationName={input.organizationName}
+        footerLine={site.footerLine}
+        footerLinks={site.footerLinks}
+        copyrightHolder={copyrightHolder}
       />
     </div>
   );
@@ -372,5 +399,8 @@ export type { StaffPerson, StaffListProps } from "./components/StaffList";
 export { ValuesGrid } from "./components/ValuesGrid";
 
 export { buildPageMetadata, buildSitemapEntries } from "./seo";
+export { siteSettingsFor, normalizeEin, addressLines, addressOneLine } from "./site-settings";
+export type { SiteSettings, SiteOrganization, FooterLink } from "./site-settings";
+export { StructuredData, buildOrganizationJsonLd, serializeJsonLd } from "./components/StructuredData";
 export type { BuildPageMetadataInput, PageMetadata, SitemapEntry } from "./seo";
 export type { ValuesGridItem, ValuesGridProps } from "./components/ValuesGrid";

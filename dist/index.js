@@ -1,12 +1,14 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.buildSitemapEntries = exports.buildPageMetadata = exports.ValuesGrid = exports.StaffList = exports.SermonEmbed = exports.ServiceTimes = exports.Prose = exports.PersonCard = exports.groupEntries = exports.Nav = exports.MinistryList = exports.Hero = exports.Gallery = exports.Footer = exports.FeatureGrid = exports.EventList = exports.DonateLink = exports.Callout = exports.ALLOWED_BLOCK_TYPES = void 0;
+exports.serializeJsonLd = exports.buildOrganizationJsonLd = exports.StructuredData = exports.addressOneLine = exports.addressLines = exports.normalizeEin = exports.siteSettingsFor = exports.buildSitemapEntries = exports.buildPageMetadata = exports.ValuesGrid = exports.StaffList = exports.SermonEmbed = exports.ServiceTimes = exports.Prose = exports.PersonCard = exports.groupEntries = exports.Nav = exports.MinistryList = exports.Hero = exports.Gallery = exports.Footer = exports.FeatureGrid = exports.EventList = exports.DonateLink = exports.Callout = exports.ALLOWED_BLOCK_TYPES = void 0;
 exports.renderSiteBundle = renderSiteBundle;
 const jsx_runtime_1 = require("react/jsx-runtime");
 const react_1 = require("react");
 const blocks_1 = require("./blocks");
 const Footer_1 = require("./components/Footer");
 const Nav_1 = require("./components/Nav");
+const StructuredData_1 = require("./components/StructuredData");
+const site_settings_1 = require("./site-settings");
 const utils_1 = require("./utils");
 function isContentBlockShape(value) {
     return (0, utils_1.isRecord)(value) && typeof value.type === "string";
@@ -155,9 +157,21 @@ function renderSiteBundle(input) {
         ]
         : []);
     const entries = hideMenu ? [] : allEntries;
+    // v4.5.0: site-wide settings from the home page's frontMatter `site`.
+    const site = (0, site_settings_1.siteSettingsFor)(input.pages);
+    const copyrightHolder = site.copyrightHolder === true ? input.organizationName : site.copyrightHolder;
+    let homeUrl = null;
+    if (input.origin) {
+        try {
+            homeUrl = new URL(input.pageUrl("/"), input.origin).toString();
+        }
+        catch {
+            homeUrl = null;
+        }
+    }
     return ((0, jsx_runtime_1.jsxs)("div", { className: input.brand?.fontPairing.bodyClassName
             ? `presby-site ${input.brand.fontPairing.bodyClassName}`
-            : "presby-site", children: [(0, jsx_runtime_1.jsx)(Nav_1.Nav, { entries: entries, currentPath: input.currentPath, portalUrl: grouped || hideMenu ? null : input.portalUrl, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName, organizationHomeUrl: input.pageUrl("/"), promoText: promoTextFor(input.profile) }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName, entries: entries, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName })] }));
+            : "presby-site", children: [site.organization && page.path === "/" ? ((0, jsx_runtime_1.jsx)(StructuredData_1.StructuredData, { organization: site.organization, organizationName: input.organizationName, url: homeUrl, profile: input.profile, logoUrl: input.logoUrl })) : null, (0, jsx_runtime_1.jsx)(Nav_1.Nav, { entries: entries, currentPath: input.currentPath, portalUrl: grouped || hideMenu ? null : input.portalUrl, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName, organizationHomeUrl: input.pageUrl("/"), promoText: promoTextFor(input.profile) }), rendered.map(({ key, element }) => ((0, jsx_runtime_1.jsx)(react_1.Fragment, { children: element }, key))), (0, jsx_runtime_1.jsx)(Footer_1.Footer, { profile: input.profile, headingClassName: ctx.headingClassName, entries: entries, logoUrl: input.logoUrl, logoAlt: `${input.organizationName} logo`, organizationName: input.organizationName, footerLine: site.footerLine, footerLinks: site.footerLinks, copyrightHolder: copyrightHolder })] }));
 }
 var blocks_2 = require("./blocks");
 Object.defineProperty(exports, "ALLOWED_BLOCK_TYPES", { enumerable: true, get: function () { return blocks_2.ALLOWED_BLOCK_TYPES; } });
@@ -196,3 +210,12 @@ Object.defineProperty(exports, "ValuesGrid", { enumerable: true, get: function (
 var seo_1 = require("./seo");
 Object.defineProperty(exports, "buildPageMetadata", { enumerable: true, get: function () { return seo_1.buildPageMetadata; } });
 Object.defineProperty(exports, "buildSitemapEntries", { enumerable: true, get: function () { return seo_1.buildSitemapEntries; } });
+var site_settings_2 = require("./site-settings");
+Object.defineProperty(exports, "siteSettingsFor", { enumerable: true, get: function () { return site_settings_2.siteSettingsFor; } });
+Object.defineProperty(exports, "normalizeEin", { enumerable: true, get: function () { return site_settings_2.normalizeEin; } });
+Object.defineProperty(exports, "addressLines", { enumerable: true, get: function () { return site_settings_2.addressLines; } });
+Object.defineProperty(exports, "addressOneLine", { enumerable: true, get: function () { return site_settings_2.addressOneLine; } });
+var StructuredData_2 = require("./components/StructuredData");
+Object.defineProperty(exports, "StructuredData", { enumerable: true, get: function () { return StructuredData_2.StructuredData; } });
+Object.defineProperty(exports, "buildOrganizationJsonLd", { enumerable: true, get: function () { return StructuredData_2.buildOrganizationJsonLd; } });
+Object.defineProperty(exports, "serializeJsonLd", { enumerable: true, get: function () { return StructuredData_2.serializeJsonLd; } });

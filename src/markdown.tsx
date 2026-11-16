@@ -4,7 +4,7 @@ import { sanitizeHref } from "./utils";
 /**
  * A deliberately small markdown-to-React path: headings, paragraphs, lists,
  * links, and emphasis only. There is no raw-HTML branch anywhere in this
- * file, and no `dangerouslySetInnerHTML` anywhere in this package — every
+ * file, and no `dangerouslySetInnerHTML` anywhere in this package but the escaped JSON-LD in components/StructuredData.tsx (v4.5.0) — every
  * character of source text that isn't consumed by one of the patterns below
  * is emitted as a plain JS string, which React itself escapes on render. A
  * `<script>...</script>` or `<img onerror=...>` string inside a `prose`

@@ -72,6 +72,29 @@ documented in the header of `scripts/ingest.mjs` and pinned by
 The platform must support the staged routes before a large site can use them.
 A site repo that pins `site_kit_ref` to a tag older than v4.1.0 is unsupported.
 
+## Status: v4.5.0
+
+Site-wide footer and organization settings, all optional, in one `site`
+object in the frontMatter of the page whose `path` is `"/"`. They apply to
+every page; a site without them renders exactly as before.
+
+- **`footerLine`**: a short identifying line under the footer logo.
+- **`footerLinks`**: up to four `{ label, href }` links (absolute `https`,
+  `mailto:` or `tel:` only), e.g. "Contact us".
+- **`copyrightHolder`**: `true` puts the organization's name in the © line;
+  a string puts that text there instead of "All rights reserved".
+- **`organization`**: schema.org `Organization` JSON-LD on the home page
+  only. `name`, `url`, `address` and `telephone` always come from the caller
+  (portal name, origin, profile), never from content; content may add
+  `legalName`, `taxId` (EIN, `NN-NNNNNNN`), `nonprofitStatus` (a schema.org
+  `USNonprofitType` name such as `Nonprofit501c3`), `parentOrganization`
+  `{ name, url }` and `sameAs` (https URLs). Invalid values are dropped. The
+  EIN is not shown on the page but is readable in the page source. This is
+  the package's one `dangerouslySetInnerHTML`: an escaped `JSON.stringify` of
+  an object built field by field (`src/components/StructuredData.tsx`).
+- **Multi-line addresses**: the profile address renders one line per line
+  entered; the "Get directions" link joins them with commas.
+
 ## Status: v4.4.0
 
 Three content options, first used by a presbytery's portal front door:

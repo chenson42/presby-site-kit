@@ -1,6 +1,7 @@
-import type { ReactElement } from "react";
+import { type ReactElement } from "react";
 import type { RenderSiteBundleProfile } from "../types";
 import type { NavEntry } from "./Nav";
+import { type FooterLink } from "../site-settings";
 export interface FooterProps {
     /** `null` renders nothing at all -- same null-safe-by-construction
      * discipline as `brand`. When non-null, every individual piece is
@@ -14,5 +15,10 @@ export interface FooterProps {
     logoUrl: string | null;
     logoAlt: string;
     organizationName: string;
+    /** v4.5.0 site settings (home-page frontMatter `site`); all optional. */
+    footerLine?: string | null;
+    footerLinks?: FooterLink[];
+    /** Replaces "All rights reserved" in the © line when set. */
+    copyrightHolder?: string | null;
 }
-export declare function Footer({ profile, headingClassName, entries, logoUrl, logoAlt, organizationName, }: FooterProps): ReactElement | null;
+export declare function Footer({ profile, headingClassName, entries, logoUrl, logoAlt, organizationName, footerLine, footerLinks, copyrightHolder, }: FooterProps): ReactElement | null;

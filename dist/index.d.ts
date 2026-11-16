@@ -184,5 +184,8 @@ export { StaffList } from "./components/StaffList";
 export type { StaffPerson, StaffListProps } from "./components/StaffList";
 export { ValuesGrid } from "./components/ValuesGrid";
 export { buildPageMetadata, buildSitemapEntries } from "./seo";
+export { siteSettingsFor, normalizeEin, addressLines, addressOneLine } from "./site-settings";
+export type { SiteSettings, SiteOrganization, FooterLink } from "./site-settings";
+export { StructuredData, buildOrganizationJsonLd, serializeJsonLd } from "./components/StructuredData";
 export type { BuildPageMetadataInput, PageMetadata, SitemapEntry } from "./seo";
 export type { ValuesGridItem, ValuesGridProps } from "./components/ValuesGrid";

@@ -1,8 +1,9 @@
-import type { ReactElement } from "react";
+import { Fragment, type ReactElement } from "react";
 import type { RenderSiteBundleProfile, ScheduleEntry } from "../types";
 import { dayName, formatClockTime, mapsSearchUrl, sanitizeHref } from "../utils";
 import type { NavEntry } from "./Nav";
 import { groupEntries } from "../nav-grouping";
+import { addressLines, addressOneLine, type FooterLink } from "../site-settings";
 
 export interface FooterProps {
   /** `null` renders nothing at all -- same null-safe-by-construction
@@ -17,6 +18,11 @@ export interface FooterProps {
   logoUrl: string | null;
   logoAlt: string;
   organizationName: string;
+  /** v4.5.0 site settings (home-page frontMatter `site`); all optional. */
+  footerLine?: string | null;
+  footerLinks?: FooterLink[];
+  /** Replaces "All rights reserved" in the © line when set. */
+  copyrightHolder?: string | null;
 }
 
 const SOCIAL_LABELS: Record<RenderSiteBundleProfile["socialLinks"][number]["platform"], string> = {
@@ -92,11 +98,16 @@ export function Footer({
   logoUrl,
   logoAlt,
   organizationName,
+  footerLine = null,
+  footerLinks = [],
+  copyrightHolder = null,
 }: FooterProps): ReactElement | null {
   const { groups } = groupEntries(entries);
-  if (!profile && groups.length === 0) return null;
+  const hasSiteContent = Boolean(footerLine || footerLinks.length > 0 || copyrightHolder);
+  if (!profile && groups.length === 0 && !hasSiteContent) return null;
 
-  const directionsHref = profile?.address ? mapsSearchUrl(profile.address) : null;
+  const directionsHref = profile?.address ? mapsSearchUrl(addressOneLine(profile.address)) : null;
+  const lines = profile?.address ? addressLines(profile.address) : [];
   const phoneHref = profile?.phone ? sanitizeHref(`tel:${profile.phone}`) : null;
   const worship = profile ? worshipLine(profile.serviceTimes) : null;
   const officeHoursLines = profile ? scheduleRuns(profile.officeHours) : [];
@@ -111,7 +122,19 @@ export function Footer({
             <p data-slot="footer-logo-text">{organizationName}</p>
           )}
 
-          {profile?.address ? <p data-slot="address">{profile.address}</p> : null}
+          {footerLine ? <p data-slot="footer-line">{footerLine}</p> : null}
+
+          {lines.length > 0 ? (
+            <p data-slot="address">
+              {lines.map((line, index) => (
+                // eslint-disable-next-line react/no-array-index-key
+                <Fragment key={index}>
+                  {index > 0 ? <br /> : null}
+                  {line}
+                </Fragment>
+              ))}
+            </p>
+          ) : null}
           {profile?.phone && phoneHref ? (
             <p data-slot="phone">
               <a href={phoneHref}>{profile.phone}</a>
@@ -157,10 +180,25 @@ export function Footer({
             ))}
           </div>
         ) : null}
+
+        {footerLinks.length > 0 ? (
+          <nav aria-label="Footer" data-slot="footer-links">
+            <ul>
+              {footerLinks.map((link) => (
+                <li key={`${link.label}-${link.href}`}>
+                  <a href={link.href}>{link.label}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ) : null}
       </div>
 
       <div data-slot="footer-bottom">
-        <p>© {new Date().getUTCFullYear()} All rights reserved</p>
+        <p>
+          © {new Date().getUTCFullYear()}
+          {copyrightHolder ? ` ${copyrightHolder}` : " All rights reserved"}
+        </p>
 
         {profile && profile.socialLinks.length > 0 ? (
           <nav aria-label="Social media" data-slot="social-links">

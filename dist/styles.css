@@ -1497,6 +1497,37 @@
   color: var(--site-footer-fg);
 }
 
+.presby-site [data-block="footer"] [data-slot="address"] {
+  overflow-wrap: anywhere;
+}
+
+/* v4.5.0 site settings: the identifying line under the logo, and the
+ * footer's own links (e.g. "Contact us"). */
+.presby-site [data-block="footer"] [data-slot="footer-line"] {
+  margin: 0 0 0.75rem;
+  color: var(--site-footer-fg);
+  font-weight: 600;
+}
+
+.presby-site [data-block="footer"] [data-slot="footer-links"] ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.presby-site [data-block="footer"] [data-slot="footer-links"] a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--site-footer-fg);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .presby-site [data-block="footer"] [data-slot="phone"] a {
   color: inherit;
   text-decoration: none;
