@@ -72,6 +72,20 @@ documented in the header of `scripts/ingest.mjs` and pinned by
 The platform must support the staged routes before a large site can use them.
 A site repo that pins `site_kit_ref` to a tag older than v4.1.0 is unsupported.
 
+## Status: v4.4.0
+
+Three content options, first used by a presbytery's portal front door:
+
+- **`featureGrid` variant `"icon"`**: a shorter dark tile (the item's
+  `color`, else `--primary`) with the item's `image` as a centred icon shown
+  whole and the heading in capitals; the description and an optional
+  button-styled `cta` label sit centred below the tile. The whole card is
+  one link.
+- **`gallery` variant `"logos"`**: a centred, wrapping row of logos at a
+  common height, never cropped; each image may carry an `href`.
+- **`prose` `align: "center"`**: centres the block's text, and its `##`
+  heading reads as a section label (capitals, smaller).
+
 ## Status: v4.3.0
 
 Two small content options for a one-page site whose content already is the

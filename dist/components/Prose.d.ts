@@ -37,5 +37,8 @@ export interface ProseProps {
      * change, so it does not force `columns` to be set.
      */
     fullWidth?: boolean;
+    /** `"center"` centres the block's text (a short section intro such as a
+     * mission statement above a row of tiles). Unset is left-aligned. */
+    align?: "center";
 }
-export declare function Prose({ body, headingClassName, columns, headingColor, fullWidth, }: ProseProps): ReactElement;
+export declare function Prose({ body, headingClassName, columns, headingColor, fullWidth, align, }: ProseProps): ReactElement;

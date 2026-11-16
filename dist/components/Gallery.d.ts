@@ -4,6 +4,9 @@ export interface GalleryImage {
      * pattern for `image`/`photo` manifestKeys. */
     url: string;
     alt: string;
+    /** `"logos"` variant only: where the logo links (an already-sanitized,
+     * already-resolved href). Unset renders the logo unlinked. */
+    href?: string;
 }
 export interface GalleryProps {
     images: GalleryImage[];
@@ -17,8 +20,11 @@ export interface GalleryProps {
      * images at once with no rotation; forcing those through the carousel
      * would hide all but one image behind an auto-advancing timer nobody
      * asked for.
+     * `"logos"`: a centred, wrapping row of logos, each shown whole at a
+     * common height (never cropped), optionally linked: an organization's
+     * own logo beside those of the councils it belongs to.
      */
-    variant?: "carousel" | "grid";
+    variant?: "carousel" | "grid" | "logos";
 }
 /**
  * A single-image-at-a-time auto-playing carousel — the multi-image gallery

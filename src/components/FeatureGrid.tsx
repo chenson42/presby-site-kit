@@ -13,6 +13,10 @@ export interface FeatureGridItem {
    * validated `#rrggbb` dark enough for its white text (see blocks.tsx).
    * Unset uses the brand's --primary, as every solid tile always has. */
   color?: string;
+  /** `"icon"` variant only: a button-styled label under the description
+   * ("Learn more"). Part of the same single link as the tile; unset shows
+   * no button. */
+  cta?: string;
 }
 
 export interface FeatureGridProps {
@@ -31,8 +35,15 @@ export interface FeatureGridProps {
    * the tile's solid color still dominates). Confirmed via the reference's
    * own compiled CSS, not visible in a static screenshot since it's a
    * hover-only reveal.
+   *
+   * `"icon"`: a shorter dark tile (the item's `color`, else --primary)
+   * with the item's image as a centred icon (shown whole, never cropped)
+   * and the heading in capitals; the description and an optional
+   * button-styled `cta` sit centred BELOW the tile. The whole card is one
+   * link, so the button is a styled span, not a second link to the same
+   * place.
    */
-  variant?: "card" | "solid";
+  variant?: "card" | "solid" | "icon";
 }
 
 /** Renders nothing when `items` is empty -- every valid-but-empty block
@@ -51,11 +62,23 @@ export function FeatureGrid({
           <li
             key={index}
             style={
-              variant === "solid" && item.color
+              variant !== "card" && item.color
                 ? ({ "--tile-bg": item.color } as CSSProperties)
                 : undefined
             }
           >
+            {variant === "icon" ? (
+              <a href={item.href}>
+                <div data-slot="tile">
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt={item.imageAlt ?? ""} />
+                  ) : null}
+                  <h2 className={headingClassName}>{item.heading}</h2>
+                </div>
+                <p>{item.body}</p>
+                {item.cta ? <span data-slot="cta">{item.cta}</span> : null}
+              </a>
+            ) : (
             <a href={item.href}>
               {item.imageUrl ? (
                 <img src={item.imageUrl} alt={item.imageAlt ?? ""} />
@@ -68,6 +91,7 @@ export function FeatureGrid({
                 <span data-slot="arrow" aria-hidden="true" />
               ) : null}
             </a>
+            )}
           </li>
         ))}
       </ul>

@@ -53,6 +53,11 @@ function Gallery({ images, intervalMs = 5000, variant = "carousel", }) {
     // ABOVE the hooks would change the hook call count between renders the
     // moment `variant` differs, which is exactly the bug this ordering
     // avoids.
+    if (variant === "logos") {
+        return ((0, jsx_runtime_1.jsx)("section", { "data-block": "gallery", "data-variant": "logos", children: (0, jsx_runtime_1.jsx)("ul", { children: images.map((image, logoIndex) => (
+                // eslint-disable-next-line react/no-array-index-key
+                (0, jsx_runtime_1.jsx)("li", { children: image.href ? ((0, jsx_runtime_1.jsx)("a", { href: image.href, children: (0, jsx_runtime_1.jsx)("img", { src: image.url, alt: image.alt }) })) : ((0, jsx_runtime_1.jsx)("img", { src: image.url, alt: image.alt })) }, logoIndex))) }) }));
+    }
     if (variant === "grid") {
         return ((0, jsx_runtime_1.jsx)("section", { "data-block": "gallery", "data-variant": "grid", children: (0, jsx_runtime_1.jsx)("ul", { children: images.map((image, gridIndex) => (
                 // eslint-disable-next-line react/no-array-index-key

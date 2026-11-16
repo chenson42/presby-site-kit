@@ -87,6 +87,7 @@ function asFeatureGridItems(value, ctx) {
                 imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined,
                 imageAlt: (0, utils_1.asNonEmptyString)(raw.imageAlt) ?? undefined,
                 color: (0, utils_1.asDarkHexColor)(raw.color) ?? undefined,
+                cta: (0, utils_1.asNonEmptyString)(raw.cta) ?? undefined,
             },
         ];
     });
@@ -95,7 +96,7 @@ function renderFeatureGridBlock(props, ctx) {
     const items = asFeatureGridItems(props.items, ctx);
     if (items.length === 0)
         return null;
-    const variant = props.variant === "solid" ? "solid" : "card";
+    const variant = props.variant === "solid" || props.variant === "icon" ? props.variant : "card";
     return ((0, jsx_runtime_1.jsx)(FeatureGrid_1.FeatureGrid, { items: items, headingClassName: ctx.headingClassName, variant: variant }));
 }
 function renderCalloutBlock(props, ctx) {
@@ -190,7 +191,14 @@ function asGalleryImages(value, ctx) {
             const key = (0, utils_1.asNonEmptyString)(raw.image);
             if (key === null)
                 return [];
-            return [{ url: ctx.imageUrl(key), alt: (0, utils_1.asNonEmptyString)(raw.alt) ?? "" }];
+            const href = (0, utils_1.sanitizeHref)(raw.href);
+            return [
+                {
+                    url: ctx.imageUrl(key),
+                    alt: (0, utils_1.asNonEmptyString)(raw.alt) ?? "",
+                    href: href ? resolveHref(href, ctx) : undefined,
+                },
+            ];
         }
         return [];
     });
@@ -200,7 +208,7 @@ function renderGalleryBlock(props, ctx) {
     if (images.length === 0)
         return null;
     const intervalMs = typeof props.intervalMs === "number" ? props.intervalMs : undefined;
-    const variant = props.variant === "grid" ? "grid" : "carousel";
+    const variant = props.variant === "grid" || props.variant === "logos" ? props.variant : "carousel";
     return (0, jsx_runtime_1.jsx)(Gallery_1.Gallery, { images: images, intervalMs: intervalMs, variant: variant });
 }
 function asEvents(value, ctx) {
@@ -249,7 +257,7 @@ function renderProseBlock(props, ctx) {
         return null;
     const columns = typeof props.columns === "number" ? props.columns : undefined;
     const fullWidth = props.fullWidth === true;
-    return ((0, jsx_runtime_1.jsx)(Prose_1.Prose, { body: body, headingClassName: ctx.headingClassName, columns: columns, headingColor: (0, utils_1.asHexColor)(props.headingColor) ?? undefined, fullWidth: fullWidth }));
+    return ((0, jsx_runtime_1.jsx)(Prose_1.Prose, { body: body, headingClassName: ctx.headingClassName, columns: columns, headingColor: (0, utils_1.asHexColor)(props.headingColor) ?? undefined, fullWidth: fullWidth, align: props.align === "center" ? "center" : undefined }));
 }
 function renderContactFormBlock(props, ctx) {
     // No `ctx.contactForm` means the caller never wired one up (or this

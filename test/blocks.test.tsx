@@ -115,6 +115,63 @@ describe("individual block renderers — malformed props render nothing, not a t
     tiles.slice(1).forEach((li) => expect(li.getAttribute("style")).toBeNull());
   });
 
+  it("featureGrid icon: one link per card holding the tile (icon + heading), the description and a button-styled cta span; colour applies", () => {
+    const element = BLOCK_REGISTRY.featureGrid(
+      {
+        variant: "icon",
+        items: [
+          {
+            heading: "Portal",
+            body: "Sign in here.",
+            href: "https://a.example.invalid",
+            image: "icon-portal",
+            color: "#213b4f",
+            cta: "Sign in",
+          },
+          { heading: "Site", body: "No button.", href: "https://b.example.invalid" },
+        ],
+      },
+      baseCtx,
+    );
+    const { container } = render(<>{element}</>);
+    expect(container.querySelector("section")?.getAttribute("data-variant")).toBe("icon");
+    const cards = Array.from(container.querySelectorAll("li"));
+    expect(cards[0].querySelectorAll("a")).toHaveLength(1);
+    expect(cards[0].querySelector('[data-slot="tile"] img')).not.toBeNull();
+    expect(cards[0].querySelector('[data-slot="tile"] h2')?.textContent).toBe("Portal");
+    expect(cards[0].querySelector('[data-slot="cta"]')?.tagName).toBe("SPAN");
+    expect(cards[0].style.getPropertyValue("--tile-bg")).toBe("#213b4f");
+    expect(cards[1].querySelector('[data-slot="cta"]')).toBeNull();
+    expect(cards[1].querySelector("img")).toBeNull();
+  });
+
+  it("prose: align \"center\" sets data-align; anything else is ignored", () => {
+    const centred = render(<>{BLOCK_REGISTRY.prose({ body: "Hi", align: "center" }, baseCtx)}</>);
+    expect(centred.container.querySelector('[data-block="prose"]')?.getAttribute("data-align")).toBe("center");
+    const other = render(<>{BLOCK_REGISTRY.prose({ body: "Hi", align: "right" }, baseCtx)}</>);
+    expect(other.container.querySelector('[data-block="prose"]')?.getAttribute("data-align")).toBeNull();
+  });
+
+  it("gallery logos: every logo renders whole and uncropped in one row; an href links it, an unsafe href is dropped", () => {
+    const element = BLOCK_REGISTRY.gallery(
+      {
+        variant: "logos",
+        images: [
+          { image: "a", alt: "A", href: "https://a.example.invalid" },
+          { image: "b", alt: "B", href: "javascript:alert(1)" },
+          "c",
+        ],
+      },
+      baseCtx,
+    );
+    const { container } = render(<>{element}</>);
+    expect(container.querySelector("section")?.getAttribute("data-variant")).toBe("logos");
+    expect(container.querySelectorAll("img")).toHaveLength(3);
+    const links = Array.from(container.querySelectorAll("a"));
+    expect(links).toHaveLength(1);
+    expect(links[0].getAttribute("href")).toBe("https://a.example.invalid");
+  });
+
   it("featureGrid card: color is ignored outside the solid variant", () => {
     const element = BLOCK_REGISTRY.featureGrid(
       { items: [{ heading: "Teal", body: "b", href: "https://a.example.invalid", color: "#007071" }] },

@@ -39,6 +39,9 @@ export interface ProseProps {
    * change, so it does not force `columns` to be set.
    */
   fullWidth?: boolean;
+  /** `"center"` centres the block's text (a short section intro such as a
+   * mission statement above a row of tiles). Unset is left-aligned. */
+  align?: "center";
 }
 
 export function Prose({
@@ -47,6 +50,7 @@ export function Prose({
   columns,
   headingColor,
   fullWidth,
+  align,
 }: ProseProps): ReactElement {
   const columnCount = columns === 2 || columns === 3 ? columns : undefined;
   return (
@@ -54,6 +58,7 @@ export function Prose({
       data-block="prose"
       data-columns={columnCount}
       data-full-width={fullWidth ? "true" : undefined}
+      data-align={align}
       style={
         headingColor
           ? ({ "--md-heading-color": headingColor } as CSSProperties)

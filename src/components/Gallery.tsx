@@ -7,6 +7,9 @@ export interface GalleryImage {
    * pattern for `image`/`photo` manifestKeys. */
   url: string;
   alt: string;
+  /** `"logos"` variant only: where the logo links (an already-sanitized,
+   * already-resolved href). Unset renders the logo unlinked. */
+  href?: string;
 }
 
 export interface GalleryProps {
@@ -21,8 +24,11 @@ export interface GalleryProps {
    * images at once with no rotation; forcing those through the carousel
    * would hide all but one image behind an auto-advancing timer nobody
    * asked for.
+   * `"logos"`: a centred, wrapping row of logos, each shown whole at a
+   * common height (never cropped), optionally linked: an organization's
+   * own logo beside those of the councils it belongs to.
    */
-  variant?: "carousel" | "grid";
+  variant?: "carousel" | "grid" | "logos";
 }
 
 /**
@@ -80,6 +86,27 @@ export function Gallery({
   // ABOVE the hooks would change the hook call count between renders the
   // moment `variant` differs, which is exactly the bug this ordering
   // avoids.
+  if (variant === "logos") {
+    return (
+      <section data-block="gallery" data-variant="logos">
+        <ul>
+          {images.map((image, logoIndex) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <li key={logoIndex}>
+              {image.href ? (
+                <a href={image.href}>
+                  <img src={image.url} alt={image.alt} />
+                </a>
+              ) : (
+                <img src={image.url} alt={image.alt} />
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  }
+
   if (variant === "grid") {
     return (
       <section data-block="gallery" data-variant="grid">

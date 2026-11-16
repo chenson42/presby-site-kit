@@ -137,6 +137,7 @@ function asFeatureGridItems(value: unknown, ctx: BlockRenderContext): FeatureGri
         imageUrl: imageKey ? ctx.imageUrl(imageKey) : undefined,
         imageAlt: asNonEmptyString(raw.imageAlt) ?? undefined,
         color: asDarkHexColor(raw.color) ?? undefined,
+        cta: asNonEmptyString(raw.cta) ?? undefined,
       },
     ];
   });
@@ -148,7 +149,8 @@ function renderFeatureGridBlock(
 ): ReactElement | null {
   const items = asFeatureGridItems(props.items, ctx);
   if (items.length === 0) return null;
-  const variant = props.variant === "solid" ? "solid" : "card";
+  const variant =
+    props.variant === "solid" || props.variant === "icon" ? props.variant : "card";
   return (
     <FeatureGrid items={items} headingClassName={ctx.headingClassName} variant={variant} />
   );
@@ -274,7 +276,14 @@ function asGalleryImages(value: unknown, ctx: BlockRenderContext): GalleryImage[
     if (isRecord(raw)) {
       const key = asNonEmptyString(raw.image);
       if (key === null) return [];
-      return [{ url: ctx.imageUrl(key), alt: asNonEmptyString(raw.alt) ?? "" }];
+      const href = sanitizeHref(raw.href);
+      return [
+        {
+          url: ctx.imageUrl(key),
+          alt: asNonEmptyString(raw.alt) ?? "",
+          href: href ? resolveHref(href, ctx) : undefined,
+        },
+      ];
     }
     return [];
   });
@@ -287,7 +296,8 @@ function renderGalleryBlock(
   const images = asGalleryImages(props.images, ctx);
   if (images.length === 0) return null;
   const intervalMs = typeof props.intervalMs === "number" ? props.intervalMs : undefined;
-  const variant = props.variant === "grid" ? "grid" : "carousel";
+  const variant =
+    props.variant === "grid" || props.variant === "logos" ? props.variant : "carousel";
   return <Gallery images={images} intervalMs={intervalMs} variant={variant} />;
 }
 
@@ -361,6 +371,7 @@ function renderProseBlock(
       columns={columns}
       headingColor={asHexColor(props.headingColor) ?? undefined}
       fullWidth={fullWidth}
+      align={props.align === "center" ? "center" : undefined}
     />
   );
 }
