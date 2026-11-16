@@ -51,6 +51,15 @@
   color: var(--site-ink);
   background: var(--background);
   line-height: 1.6;
+  /* The footer sits at the bottom of the window on a short page, not
+   * halfway up it with page background showing underneath (a one-screen
+   * portal front door made the dark band float). Column flex plus the
+   * footer's `margin-top: auto` below; the window height comes from here,
+   * not the host's wrapper, so the preview server behaves the same. */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100svh;
 }
 
 .presby-site h1 {
@@ -304,9 +313,27 @@
  * ------------------------------------------------------------------- */
 
 .presby-site > [data-block] {
+  /* `width: 100%` because the wrapper is a column flexbox: an item with
+   * auto side margins does not stretch, it shrinks to its content.
+   * border-box so a padded full-bleed band (the inset callout) stays at
+   * 100%, as its old `width: auto` did. */
+  width: 100%;
+  box-sizing: border-box;
   max-width: var(--site-content-width);
   margin: 0 auto var(--site-gap);
   padding: 0;
+}
+
+/* Flex margins do not collapse, so the gap above the footer is set on the
+ * block before it (the 1.5x gap the footer's own margin-top used to give),
+ * and the footer takes up the slack and ends flush with the window. */
+.presby-site > :has(+ [data-block="footer"]) {
+  margin-bottom: calc(var(--site-gap) * 1.5);
+}
+
+.presby-site > [data-block="footer"] {
+  margin-top: auto;
+  margin-bottom: 0;
 }
 
 /* The inset callout is genuinely full-bleed (a colored band spanning the
@@ -1244,7 +1271,6 @@
   --site-footer-fg: #fff;
   --site-footer-muted: rgba(255, 255, 255, 0.7);
   --site-footer-border: rgba(255, 255, 255, 0.15);
-  margin-top: calc(var(--site-gap) * 1.5);
   background: var(--site-footer-bg);
   color: var(--site-footer-fg);
 }
